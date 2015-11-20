@@ -108,6 +108,27 @@ class JTableRow {
         });
 
         // button add row
+
+        btnAdd.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+                if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                    btnAdd.doClick();
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
+
         btnAdd.addActionListener(new ActionListener() {
 
             @Override
