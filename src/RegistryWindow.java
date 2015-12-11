@@ -11,11 +11,15 @@ import javax.swing.table.TableColumn;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * Created by Пользователь on 22.11.2015.
+ * Created by пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ on 22.11.2015.
  */
 public class RegistryWindow {
 
@@ -183,16 +187,47 @@ public class RegistryWindow {
                 row[2] = textSum.getText();
                 row[3] = textWhatPayFor.getText();
 
+                //get selected date from datePicker
+                Date selectedDate = (Date) datePicker.getModel().getValue();
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                String reportDate = df.format(selectedDate);
+
+                try (Connection conn = DBConnector.getConn()) {
+
+                    CompanyNameListTableRow companyNameListTableRow = new CompanyNameListTableRow(conn, row[1]);
+                    companyNameListTableRow.insert();
+
+                    WhatPayForListRow whatPayForListRow = new WhatPayForListRow(conn, row[3]);
+                    whatPayForListRow.insert();
+
+                    TemporaryRegistryTableRow temporaryRegistryTableRow = new TemporaryRegistryTableRow(
+                            conn,
+                            reportDate,
+                            row[2],
+                            companyNameListTableRow.getCompanyNameId(),
+                            whatPayForListRow.getWhatPayForId());
+
+                    temporaryRegistryTableRow.insert();
+
+                }catch (SQLException c){
+
+                    System.out.println("SQLException in connection close in Registry Window add button");
+                }
+
+
                 // add row to the model
                 model.addRow(row);
 
+                //make text fields empty
                 textCompanyName.setText("");
                 textSum.setText("");
                 textWhatPayFor.setText("");
 
+                //refresh a total of registry
                 sum = sum + Integer.parseInt(table.getValueAt(table.getRowCount()-1, 2).toString());
                 labelSumOfSums.setText("TOTAL: " + sum);
 
+                //change focus
                 textCompanyName.requestFocus();
             }
         });
@@ -208,6 +243,32 @@ public class RegistryWindow {
 
                 sum = sum - Integer.parseInt(table.getValueAt(i, 2).toString());
                 labelSumOfSums.setText("TOTAL: " + sum);
+
+                Date selectedDate = (Date) datePicker.getModel().getValue();
+                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                String reportDate = df.format(selectedDate);
+
+                try (Connection conn = DBConnector.getConn()) {
+
+                    CompanyNameListTableRow companyNameListTableRow = new CompanyNameListTableRow(conn, row[1]);
+                    companyNameListTableRow.delete();
+
+                    WhatPayForListRow whatPayForListRow = new WhatPayForListRow(conn, row[3]);
+                    whatPayForListRow.delete();
+
+                    TemporaryRegistryTableRow temporaryRegistryTableRow = new TemporaryRegistryTableRow(
+                            conn,
+                            reportDate,
+                            model.getValueAt(i, 2).toString(),
+                            Long.parseLong(model.getValueAt(i, 1).toString()),
+                            Long.parseLong(model.getValueAt(i, 3).toString()));
+
+                    temporaryRegistryTableRow.delete();
+
+                }catch (SQLException c){
+
+                    System.out.println("SQLException in connection close in Registry Window add button");
+                }
 
                 if (i >= 0) {
                     // remove a row from jtable
@@ -307,7 +368,7 @@ public class RegistryWindow {
 
                         lblClock.setText("TIME: " + hour + ":" + minute + ":" + second);
 
-                        if (hour >= 9 & hour <= 15 && minute < 30) {
+                        if (hour >= 9 & hour < 15) {
                             lblClock.setForeground(Color.blue);
                         }else if (hour == 15 & minute >= 30 ){
                             lblClock.setForeground(Color.yellow);
