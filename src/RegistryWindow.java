@@ -1,33 +1,41 @@
 
-import org.jdatepicker.impl.JDatePanelImpl;
-import org.jdatepicker.impl.JDatePickerImpl;
-import org.jdatepicker.impl.UtilDateModel;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.text.DateFormat;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
  * Created by ������������ on 22.11.2015.
  */
-public class RegistryWindow {
+public class RegistryWindow extends JFrame{
+
+    MyTableModel modelMain;
+    LoadTableModel modelLoad;
+    DatePicker datePicker = new DatePicker();
+    JLabel labelSumOfSums;
+    JTable tableMain;
+
+    JButton btnAdd;
+    JButton btnDelete;
+    JButton btnUpdate;
+    JButton btnLoadData;
+    JButton btnConfirmStatus;
+    JButton btnBack;
 
     private static JLabel lblClock;
-    private static int sum = 0;
+    private static long sum = 0;
 
-    public static void main(String[] args) {
+    public RegistryWindow() {
 
+        Connection conn = DBConnector.getConn();
+
+        //Set the main theme to the program
         try {
 
             UIManager.setLookAndFeel(
@@ -38,137 +46,135 @@ public class RegistryWindow {
                         InstantiationException |
                             IllegalAccessException e ){
 
+            e.printStackTrace();
+
         }
 
-        // create JFrame and JTable
-        JFrame frame = new JFrame();
-        JTable table = new JTable();
-        ListSelectionModel listSelectionModel;
-        NumberFormatter numberFormat;
-
-        listSelectionModel = table.getSelectionModel();
-        listSelectionModel.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-
-                listSelectionModel.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-            }
-        });
-
-        table.setSelectionModel(listSelectionModel);
+        // create JTable
+        tableMain = new JTable();
 
         // create a table model and set a Column Identifiers to this model
-        Object[] columns = {"Id", "COMPANY NAME", "SUM", "WHAT PAY FOR"};
-        DefaultTableModel model = new DefaultTableModel();
-        model.setColumnIdentifiers(columns);
+        modelMain = new MyTableModel();
 
         // set the model to the table
-        table.setModel(model);
+        tableMain.setModel(modelMain);
 
         // Change A JTable Background Color, Font Size, Font Color, Row Height
-        TableColumn column = null;
-        for (int i = 0; i < 4; i++) {
-            column = table.getColumnModel().getColumn(i);
+        TableColumn column;
+        for (int i = 0; i < 5; i++) {
+            column = tableMain.getColumnModel().getColumn(i);
             if (i == 0) {
                 column.setPreferredWidth(50); //third column is bigger
             } else if (i == 1) {
                 column.setPreferredWidth(300);
-            }else if (i == 2) {
+            } else if (i == 2) {
                 column.setPreferredWidth(150);
-            }else
-                column.setPreferredWidth(400);
-            }
+            } else if (i == 3) {
+                column.setPreferredWidth(350);
+            } else
+                column.setPreferredWidth(50);
+        }
 
-        table.setBackground(Color.WHITE);
-        table.setForeground(Color.black);
+        modelLoad = new LoadTableModel();
+
+        tableMain.setBackground(Color.WHITE);
+        tableMain.setForeground(Color.black);
         Font font = new Font("", 1, 22);
-        table.setFont(font);
-        table.setRowHeight(30);
+        tableMain.setFont(font);
+        tableMain.setRowHeight(30);
 
-        // create JLabels
+        //load data from database to table model and change date of payment for today, if status is 0 (not accept) and it is a payment
+        // of previous day
+        Payments payments = new Payments(conn, tableMain, modelMain);
+        payments.updateDate(getDate());
+        payments.select(0);
+
+        // create JComboBoxes and JTextFields
+        CompaniesField companiesField = new CompaniesField(conn);
+        companiesField.setBounds(20, 220, 250, 25);
+        SumTextField sumTextField = new SumTextField();
+        PurposesField purposesField = new PurposesField(conn);
+        purposesField.setBounds(460, 220, 420, 25);
+
+        // create JLabels for time and total
         lblClock = new JLabel();
         lblClock.setFont(new Font("", 1, 22));
         currentTime();
-        JLabel labelCompanyName = new JLabel("Company");
-        JLabel labelSum = new JLabel("Sum");
-        JLabel labelWhatPayFor = new JLabel("What");
-        JLabel labelSumOfSums = new JLabel("TOTAL: " + sum);
+
+        sum = payments.getTotal();
+        labelSumOfSums = new JLabel("TOTAL: " + sum);
         labelSumOfSums.setFont(new Font ("", Font.BOLD, 22));
 
-        // create JTextFields
-        JTextField textCompanyName = new JTextField();
-        JFormattedTextField textSum = new JFormattedTextField(NumberFormat.INTEGER_FIELD);
-        JTextField textWhatPayFor = new JTextField();
-
         // create JButtons
-        JButton btnAdd = new JButton("Add");
-        JButton btnDelete = new JButton("Delete");
-        JButton btnUpdate = new JButton("Update");
+        btnAdd = new JButton("Add");
+        btnDelete = new JButton("Delete");
+        btnUpdate = new JButton("Update");
+        btnLoadData = new JButton("Load Data");
+        btnConfirmStatus = new JButton("Confirm Status");
+        btnBack = new JButton("Back");
 
         lblClock.setBounds(350, 320, 250, 30);
-        labelCompanyName.setBounds(20, 200, 250, 15);
-        labelSum.setBounds(290, 200, 150, 15);
-        labelWhatPayFor.setBounds(460, 200, 420, 15);
-        labelSumOfSums.setBounds(300, 250, 100, 30);
-
-        textCompanyName.setBounds(20, 220, 250, 25);
-        textSum.setBounds(290, 220, 150, 25);
-        textWhatPayFor.setBounds(460, 220, 420, 25);
+        labelSumOfSums.setBounds(300, 250, 150, 30);
 
         btnAdd.setBounds(20, 250, 100, 25);
         btnUpdate.setBounds(20, 285, 100, 25);
         btnDelete.setBounds(20, 320, 100, 25);
+        btnLoadData.setBounds(130, 320, 100, 25);
+        btnConfirmStatus.setBounds(130, 285, 100, 25);
+        btnBack.setBounds(750, 320, 100, 25);
+        btnBack.setVisible(false);
 
-        // create JScrollPane
-        JScrollPane pane = new JScrollPane(table);
-        pane.setBounds(0, 0, 880, 200);
+        // create JScrollPane for Main Table
+        JScrollPane paneMain = new JScrollPane(tableMain);
+        paneMain.setBounds(0, 0, 880, 200);
 
-        frame.setLayout(null);
+        setLayout(null);
 
-        frame.add(pane);
+        add(paneMain);
 
-        JDatePickerImpl datePicker = getjDatePicker();
-
-        frame.add(datePicker);
+        add(datePicker.getjDatePicker());
 
         // add JLabels to the jframe
-        frame.add(lblClock);
-        frame.add(labelCompanyName);
-        frame.add(labelSum);
-        frame.add(labelWhatPayFor);
-        frame.add(labelSumOfSums);
+        add(lblClock);
+        add(companiesField.getLabel());
+        add(sumTextField.getLabel());
+        add(purposesField.getLabel());
+        add(labelSumOfSums);
 
         // add JTextFields to the jframe
-        frame.add(textCompanyName);
-        frame.add(textSum);
-        frame.add(textWhatPayFor);
+        add(companiesField);
+        add(sumTextField);
+        add(purposesField);
 
         // add JButtons to the jframe
-        frame.add(btnAdd);
-        frame.add(btnDelete);
-        frame.add(btnUpdate);
-        frame.getRootPane().setDefaultButton(btnAdd);
+        add(btnAdd);
+        add(btnDelete);
+        add(btnUpdate);
+        add(btnLoadData);
+        add(btnConfirmStatus);
+        add(btnBack);
+        getRootPane().setDefaultButton(btnAdd);
 
         // create an array of objects to set the row data
-        Object[] row = new Object[4];
+        Object[] row = new Object[5];
 
-        textCompanyName.addActionListener(new ActionListener() {
+        companiesField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                textSum.requestFocus();
+                sumTextField.requestFocus();
             }
         });
 
-        textSum.addActionListener(new ActionListener() {
+        sumTextField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                textWhatPayFor.requestFocus();
+                purposesField.requestFocus();
             }
         });
 
-        textWhatPayFor.addActionListener(new ActionListener() {
+        purposesField.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
@@ -182,53 +188,50 @@ public class RegistryWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                row[0] = model.getRowCount()+1;
-                row[1] = textCompanyName.getText();
-                row[2] = textSum.getText();
-                row[3] = textWhatPayFor.getText();
+                if (companiesField.getSelectedItem().equals("") ||
+                        sumTextField.getText().isEmpty() ||
+                        purposesField.getSelectedItem().equals("")) {
 
-                //get selected date from datePicker
-                Date selectedDate = (Date) datePicker.getModel().getValue();
-                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-                String reportDate = df.format(selectedDate);
+                    JOptionPane.showMessageDialog(null, "Fill all fields, please!");
 
-                try (Connection conn = DBConnector.getConn()) {
+                } else {
 
-                    CompanyNameListTableRow companyNameListTableRow = new CompanyNameListTableRow(conn, row[1]);
-                    companyNameListTableRow.insert();
+                    row[0] = modelMain.getRowCount() + 1;
+                    row[1] = companiesField.getSelectedItem();
+                    row[2] = sumTextField.getText();
+                    row[3] = purposesField.getSelectedItem();
 
-                    WhatPayForListRow whatPayForListRow = new WhatPayForListRow(conn, row[3]);
-                    whatPayForListRow.insert();
+                    //get selected date from datePicker
+                    String reportDate = getDate();
 
-                    TemporaryRegistryTableRow temporaryRegistryTableRow = new TemporaryRegistryTableRow(
+                    Companies companies = new Companies(conn, row[1]);
+                    companies.insert();
+
+                    Purposes purposes = new Purposes(conn, row[3]);
+                    purposes.insert();
+
+                    Payments payments = new Payments(
                             conn,
                             reportDate,
                             row[2],
-                            companyNameListTableRow.getCompanyNameId(),
-                            whatPayForListRow.getWhatPayForId());
+                            companies.getCompanyNameId(),
+                            purposes.getWhatPayForId());
 
-                    temporaryRegistryTableRow.insert();
+                    payments.insert();
 
-                }catch (SQLException c){
+                    // add row to the model
+                    modelMain.addRow(row);
 
-                    System.out.println("SQLException in connection close in Registry Window add button");
+                    //make text fields empty
+                    sumTextField.setText("");
+
+                    //refresh a total of registry
+                    sum = payments.getTotal();
+                    labelSumOfSums.setText("TOTAL: " + sum);
+
+                    //change focus
+                    companiesField.requestFocus();
                 }
-
-
-                // add row to the model
-                model.addRow(row);
-
-                //make text fields empty
-                textCompanyName.setText("");
-                textSum.setText("");
-                textWhatPayFor.setText("");
-
-                //refresh a total of registry
-                sum = sum + Integer.parseInt(table.getValueAt(table.getRowCount()-1, 2).toString());
-                labelSumOfSums.setText("TOTAL: " + sum);
-
-                //change focus
-                textCompanyName.requestFocus();
             }
         });
 
@@ -239,70 +242,126 @@ public class RegistryWindow {
             public void actionPerformed(ActionEvent e) {
 
                 // i = the index of the selected row
-                int i = table.getSelectedRow();
+                int i = tableMain.getSelectedRow();
 
-                sum = sum - Integer.parseInt(table.getValueAt(i, 2).toString());
-                labelSumOfSums.setText("TOTAL: " + sum);
+                String reportDate = getDate();
 
-                Date selectedDate = (Date) datePicker.getModel().getValue();
-                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-                String reportDate = df.format(selectedDate);
+                    Companies companies = new Companies(
+                            conn,
+                            tableMain.getValueAt(i, 1));
 
-                try (Connection conn = DBConnector.getConn()) {
+                    Purposes purposes = new Purposes(
+                            conn,
+                            tableMain.getValueAt(i, 3));
 
-                    CompanyNameListTableRow companyNameListTableRow = new CompanyNameListTableRow(conn, row[1]);
-                    companyNameListTableRow.delete();
-
-                    WhatPayForListRow whatPayForListRow = new WhatPayForListRow(conn, row[3]);
-                    whatPayForListRow.delete();
-
-                    TemporaryRegistryTableRow temporaryRegistryTableRow = new TemporaryRegistryTableRow(
+                    Payments payments = new Payments(
                             conn,
                             reportDate,
-                            model.getValueAt(i, 2).toString(),
-                            Long.parseLong(model.getValueAt(i, 1).toString()),
-                            Long.parseLong(model.getValueAt(i, 3).toString()));
+                            tableMain.getValueAt(i, 2),
+                            companies.getCompanyNameId(),
+                            purposes.getWhatPayForId());
 
-                    temporaryRegistryTableRow.delete();
-
-                }catch (SQLException c){
-
-                    System.out.println("SQLException in connection close in Registry Window add button");
-                }
+                    payments.delete();
+                    companies.delete();
+                    purposes.delete();
 
                 if (i >= 0) {
                     // remove a row from jtable
-                    model.removeRow(i);
+                    modelMain.removeRow(i);
 
-                    for (int j = 0; j < table.getRowCount(); j++) {
+                    for (int j = 0; j < tableMain.getRowCount(); j++) {
 
-                        table.setValueAt(j + 1, j, 0);
+                        tableMain.setValueAt(j + 1, j, 0);
 
                     }
                 } else {
                     System.out.println("Delete Error");
                 }
 
-                textCompanyName.setText("");
-                textSum.setText("");
-                textWhatPayFor.setText("");
+                sumTextField.setText("");
 
-                textCompanyName.requestFocus();
+                sum = payments.getTotal();
+                labelSumOfSums.setText("TOTAL: " + sum);
+
+                companiesField.requestFocus();
+            }
+        });
+
+        //button for load registry from database
+        btnLoadData.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                Thread loadThread = new Thread(){
+
+                    public void run(){
+
+                        new LoadFrame(conn, tableMain, modelLoad, btnBack, btnAdd, btnConfirmStatus, btnDelete, btnUpdate);
+
+                    }
+                };
+
+                loadThread.start();
+            }
+        });
+
+        btnBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                if (modelMain.getRowCount() > 0){
+
+                    modelMain.setRowCount(0);
+                }
+
+                // set the model to the table
+                tableMain.setModel(modelMain);
+
+                // Change A JTable Background Color, Font Size, Font Color, Row Height
+                TableColumn column;
+                for (int i = 0; i < 5; i++) {
+                    column = tableMain.getColumnModel().getColumn(i);
+                    if (i == 0) {
+                        column.setPreferredWidth(50); //third column is bigger
+                    } else if (i == 1) {
+                        column.setPreferredWidth(300);
+                    } else if (i == 2) {
+                        column.setPreferredWidth(150);
+                    } else if (i == 3) {
+                        column.setPreferredWidth(350);
+                    } else
+                        column.setPreferredWidth(50);
+                }
+
+                tableMain.setBackground(Color.WHITE);
+                tableMain.setForeground(Color.black);
+                Font font = new Font("", 1, 22);
+                tableMain.setFont(font);
+                tableMain.setRowHeight(30);
+
+                payments.select(0);
+
+                btnBack.setVisible(false);
+                btnAdd.setEnabled(true);
+                btnConfirmStatus.setEnabled(true);
+                btnDelete.setEnabled(true);
+                btnUpdate.setEnabled(true);
             }
         });
 
         // get selected row data From table to textfields
-        table.addMouseListener(new MouseAdapter() {
+        tableMain.addMouseListener(new MouseAdapter() {
 
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                // i = the index of the selected row
-                int i = table.getSelectedRow();
+                    // i = the index of the selected row
+                    int i = tableMain.getSelectedRow();
 
-                textCompanyName.setText(model.getValueAt(i, 1).toString());
-                textSum.setText(model.getValueAt(i, 2).toString());
-                textWhatPayFor.setText(model.getValueAt(i, 3).toString());
+                    companiesField.setSelectedItem(tableMain.getValueAt(i, 1).toString());
+                    sumTextField.setText(tableMain.getValueAt(i, 2).toString());
+                    purposesField.setSelectedItem(tableMain.getValueAt(i, 3).toString());
+
             }
         });
 
@@ -313,40 +372,105 @@ public class RegistryWindow {
             public void actionPerformed(ActionEvent e) {
 
                 // i = the index of the selected row
-                int i = table.getSelectedRow();
+                int i = tableMain.getSelectedRow();
 
-                if (i >= 0) {
-                    model.setValueAt(model.getRowCount()+1, i, 0);
-                    model.setValueAt(textCompanyName.getText(), i, 1);
-                    model.setValueAt(textSum.getText(), i, 2);
-                    model.setValueAt(textWhatPayFor.getText(), i, 3);
-                } else {
-                    System.out.println("Update Error");
+                String reportDate = getDate();
+                String nameInCompany = companiesField.getSelectedItem().toString();
+                String sumInSum = sumTextField.getText();
+                String purposeInPurpose = purposesField.getSelectedItem().toString();
+
+                if (!nameInCompany.equals(tableMain.getValueAt(i, 1))){
+
+                    Companies companie = new Companies(conn, tableMain.getValueAt(i, 1));
+
+                    companie.update(companie.getCompanyNameId(), nameInCompany);
+
+                    tableMain.setValueAt(nameInCompany, i, 1);
+                    companiesField.fillComboBox();
+                    companiesField.setSelectedItem(tableMain.getValueAt(i, 1));
+
+                }else if (!sumInSum.equals(tableMain.getValueAt(i, 2))){
+
+                    long company= new Companies(conn, nameInCompany).getCompanyNameId();
+                    long purpose= new Purposes(conn, purposeInPurpose).getWhatPayForId();
+
+                    Payments payment = new Payments(conn,
+                                                    reportDate,
+                                                    tableMain.getValueAt(i, 2),
+                                                    company,
+                                                    purpose);
+
+                    payment.update(payment.getPayment(), sumInSum);
+
+                    sum = payment.getTotal();
+                    labelSumOfSums.setText("TOTAL: " + sum);
+
+                    tableMain.setValueAt(sumInSum, i, 2);
+
+                }else if(!purposeInPurpose.equals(tableMain.getValueAt(i, 3))){
+
+                    Purposes purpose = new Purposes(conn, tableMain.getValueAt(i, 3));
+
+                    purpose.update(purpose.getWhatPayForId(), purposeInPurpose);
+
+                    tableMain.setValueAt(purposeInPurpose, i, 3);
+                    purposesField.fillComboBox();
+                    purposesField.setSelectedItem(tableMain.getValueAt(i, 1));
+
+                }else{
+
+                    JOptionPane.showMessageDialog(null, "No updates");
                 }
             }
         });
 
-        frame.pack();
-        frame.setSize(900, 400);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        textCompanyName.requestFocusInWindow();
-        frame.setVisible(true);
+        btnConfirmStatus.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                Thread statusUpdate = new Thread(){
+
+                    Companies companies;
+                    Purposes purposes;
+                    Payments payments;
+
+                    int n = tableMain.getRowCount();
+
+                    public void run(){
+
+                        for (int i = 0; i < n; i++) {
+
+                            companies = new Companies(conn, tableMain.getValueAt(i, 1));
+                            purposes = new Purposes(conn, tableMain.getValueAt(i, 3));
+
+                            payments = new Payments(conn,
+                                                    getDate(),
+                                                    tableMain.getValueAt(i, 2),
+                                                    companies.getCompanyNameId(),
+                                                    purposes.getWhatPayForId());
+
+                            payments.updateStatus((boolean)tableMain.getValueAt(i, 4));
+                        }
+                    }
+                };
+
+                statusUpdate.start();
+            }
+        });
+
+        pack();
+        setSize(900, 400);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        companiesField.requestFocusInWindow();
+        setVisible(true);
 
     }
 
-    private static JDatePickerImpl getjDatePicker() {
-
-        UtilDateModel jmodel = new UtilDateModel();
-        Properties p = new Properties();
-        p.put("text.today", "Today");
-        p.put("text.month", "Month");
-        p.put("text.year", "Year");
-        JDatePanelImpl datePanel = new JDatePanelImpl(jmodel, p);
-        JDatePickerImpl datePicker = new JDatePickerImpl(datePanel, new DateLabelFormatter());
-        datePicker.setBounds(680, 250, 200, 30);
-        datePicker.setTextEditable(true);
-        return datePicker;
+    private String getDate() {
+        Date selectedDate = (Date) datePicker.getjDatePicker().getModel().getValue();
+        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        return df.format(selectedDate);
     }
 
     public static void currentTime() {
