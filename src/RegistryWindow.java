@@ -29,7 +29,6 @@ public class RegistryWindow extends JFrame{
     JButton btnBack;
 
     private static JLabel lblClock;
-    private static long sum = 0;
 
     public RegistryWindow() {
 
@@ -101,9 +100,8 @@ public class RegistryWindow extends JFrame{
         lblClock.setFont(new Font("", 1, 22));
         currentTime();
 
-        sum = payments.getTotal();
-        labelSumOfSums = new JLabel("TOTAL: " + sum);
-        labelSumOfSums.setFont(new Font ("", Font.BOLD, 22));
+        labelSumOfSums = new JLabel("TOTAL: " + payments.getTotal());
+        labelSumOfSums.setFont(new Font ("", Font.BOLD, 20));
 
         // create JButtons
         btnAdd = new JButton("Add");
@@ -114,7 +112,7 @@ public class RegistryWindow extends JFrame{
         btnBack = new JButton("Back");
 
         lblClock.setBounds(350, 320, 250, 30);
-        labelSumOfSums.setBounds(300, 250, 150, 30);
+        labelSumOfSums.setBounds(300, 250, 250, 30);
 
         btnAdd.setBounds(20, 250, 100, 25);
         btnUpdate.setBounds(20, 285, 100, 25);
@@ -155,198 +153,176 @@ public class RegistryWindow extends JFrame{
         add(btnBack);
         getRootPane().setDefaultButton(btnAdd);
 
+        pack();
+        setSize(900, 400);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        companiesField.requestFocusInWindow();
+        setVisible(true);
+        setResizable(false);
+
         // create an array of objects to set the row data
         Object[] row = new Object[5];
 
-        companiesField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        companiesField.addActionListener(e -> sumTextField.requestFocus());
 
-                sumTextField.requestFocus();
-            }
-        });
+        sumTextField.addActionListener(e -> purposesField.requestFocus());
 
-        sumTextField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                purposesField.requestFocus();
-            }
-        });
-
-        purposesField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                btnAdd.requestFocus();
-            }
-        });
+        purposesField.addActionListener(e -> btnAdd.requestFocus());
 
         // button add row
-        btnAdd.addActionListener(new ActionListener() {
+        btnAdd.addActionListener(e -> {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
+            if (companiesField.getSelectedItem().equals("") ||
+                    sumTextField.getValue() == null ||
+                    purposesField.getSelectedItem().equals("")) {
 
-                if (companiesField.getSelectedItem().equals("") ||
-                        sumTextField.getText().isEmpty() ||
-                        purposesField.getSelectedItem().equals("")) {
+                JOptionPane.showMessageDialog(null, "Fill all fields, please!");
 
-                    JOptionPane.showMessageDialog(null, "Fill all fields, please!");
+            } else {
 
-                } else {
+                row[0] = modelMain.getRowCount() + 1;
+                row[1] = companiesField.getSelectedItem();
+                row[2] = sumTextField.getValue();
+                row[3] = purposesField.getSelectedItem();
 
-                    row[0] = modelMain.getRowCount() + 1;
-                    row[1] = companiesField.getSelectedItem();
-                    row[2] = sumTextField.getText();
-                    row[3] = purposesField.getSelectedItem();
-
-                    //get selected date from datePicker
-                    String reportDate = getDate();
-
-                    Companies companies = new Companies(conn, row[1]);
-                    companies.insert();
-
-                    Purposes purposes = new Purposes(conn, row[3]);
-                    purposes.insert();
-
-                    Payments payments = new Payments(
-                            conn,
-                            reportDate,
-                            row[2],
-                            companies.getCompanyNameId(),
-                            purposes.getWhatPayForId());
-
-                    payments.insert();
-
-                    // add row to the model
-                    modelMain.addRow(row);
-
-                    //make text fields empty
-                    sumTextField.setText("");
-
-                    //refresh a total of registry
-                    sum = payments.getTotal();
-                    labelSumOfSums.setText("TOTAL: " + sum);
-
-                    //change focus
-                    companiesField.requestFocus();
-                }
-            }
-        });
-
-        // button remove row
-        btnDelete.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                // i = the index of the selected row
-                int i = tableMain.getSelectedRow();
-
+                //get selected date from datePicker
                 String reportDate = getDate();
 
-                    Companies companies = new Companies(
-                            conn,
-                            tableMain.getValueAt(i, 1));
+                Companies companies = new Companies(conn, row[1]);
+                companies.insert();
 
-                    Purposes purposes = new Purposes(
-                            conn,
-                            tableMain.getValueAt(i, 3));
+                Purposes purposes = new Purposes(conn, row[3]);
+                purposes.insert();
 
-                    Payments payments = new Payments(
-                            conn,
-                            reportDate,
-                            tableMain.getValueAt(i, 2),
-                            companies.getCompanyNameId(),
-                            purposes.getWhatPayForId());
+                Payments payments1 = new Payments(
+                        conn,
+                        reportDate,
+                        (Double) row[2],
+                        companies.getCompanyNameId(),
+                        purposes.getWhatPayForId());
 
-                    payments.delete();
-                    companies.delete();
-                    purposes.delete();
+                payments1.insert();
 
-                if (i >= 0) {
-                    // remove a row from jtable
-                    modelMain.removeRow(i);
+                // add row to the model
+                modelMain.addRow(row);
 
-                    for (int j = 0; j < tableMain.getRowCount(); j++) {
+                //make text fields empty
+                sumTextField.setValue(null);
 
-                        tableMain.setValueAt(j + 1, j, 0);
+                //refresh a total of registry
+                labelSumOfSums.setText("TOTAL: " + payments1.getTotal());
 
-                    }
-                } else {
-                    System.out.println("Delete Error");
-                }
-
-                sumTextField.setText("");
-
-                sum = payments.getTotal();
-                labelSumOfSums.setText("TOTAL: " + sum);
-
+                //change focus
                 companiesField.requestFocus();
             }
         });
 
-        //button for load registry from database
-        btnLoadData.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        // button remove row
+        btnDelete.addActionListener(e -> {
 
-                Thread loadThread = new Thread(){
+            // i = the index of the selected row
+            int i = tableMain.getSelectedRow();
 
-                    public void run(){
+            String reportDate = getDate();
 
-                        new LoadFrame(conn, tableMain, modelLoad, btnBack, btnAdd, btnConfirmStatus, btnDelete, btnUpdate);
+                Companies companies = new Companies(
+                        conn,
+                        tableMain.getValueAt(i, 1));
 
-                    }
-                };
+                Purposes purposes = new Purposes(
+                        conn,
+                        tableMain.getValueAt(i, 3));
 
-                loadThread.start();
+                Payments payments1 = new Payments(
+                        conn,
+                        reportDate,
+                        (Double) tableMain.getValueAt(i, 2),
+                        companies.getCompanyNameId(),
+                        purposes.getWhatPayForId());
+
+                payments1.delete();
+                companies.delete();
+                purposes.delete();
+
+            if (i >= 0) {
+                // remove a row from jtable
+                modelMain.removeRow(i);
+
+                for (int j = 0; j < tableMain.getRowCount(); j++) {
+
+                    tableMain.setValueAt(j + 1, j, 0);
+
+                }
+            } else {
+                System.out.println("Delete Error");
             }
+
+            sumTextField.setValue(null);
+
+            labelSumOfSums.setText("TOTAL: " + payments1.getTotal());
+
+            companiesField.requestFocus();
         });
 
-        btnBack.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        //button for load registry from database
+        btnLoadData.addActionListener(e -> {
 
-                if (modelMain.getRowCount() > 0){
+            companiesField.setSelectedItem("");
+            sumTextField.setValue(null);
+            purposesField.setSelectedItem("");
 
-                    modelMain.setRowCount(0);
+            Thread loadThread = new Thread(){
+
+                public void run(){
+
+                    new LoadFrame(conn, tableMain, modelLoad, btnBack, btnAdd, btnConfirmStatus, btnDelete, btnUpdate, labelSumOfSums);
+
                 }
+            };
 
-                // set the model to the table
-                tableMain.setModel(modelMain);
+            loadThread.start();
+        });
 
-                // Change A JTable Background Color, Font Size, Font Color, Row Height
-                TableColumn column;
-                for (int i = 0; i < 5; i++) {
-                    column = tableMain.getColumnModel().getColumn(i);
-                    if (i == 0) {
-                        column.setPreferredWidth(50); //third column is bigger
-                    } else if (i == 1) {
-                        column.setPreferredWidth(300);
-                    } else if (i == 2) {
-                        column.setPreferredWidth(150);
-                    } else if (i == 3) {
-                        column.setPreferredWidth(350);
-                    } else
-                        column.setPreferredWidth(50);
-                }
+        btnBack.addActionListener(e -> {
 
-                tableMain.setBackground(Color.WHITE);
-                tableMain.setForeground(Color.black);
-                Font font = new Font("", 1, 22);
-                tableMain.setFont(font);
-                tableMain.setRowHeight(30);
+            if (modelMain.getRowCount() > 0){
 
-                payments.select(0);
-
-                btnBack.setVisible(false);
-                btnAdd.setEnabled(true);
-                btnConfirmStatus.setEnabled(true);
-                btnDelete.setEnabled(true);
-                btnUpdate.setEnabled(true);
+                modelMain.setRowCount(0);
             }
+
+            // set the model to the table
+            tableMain.setModel(modelMain);
+
+            // Change A JTable Background Color, Font Size, Font Color, Row Height
+            TableColumn column1;
+            for (int i = 0; i < 5; i++) {
+                column1 = tableMain.getColumnModel().getColumn(i);
+                if (i == 0) {
+                    column1.setPreferredWidth(50); //third column is bigger
+                } else if (i == 1) {
+                    column1.setPreferredWidth(300);
+                } else if (i == 2) {
+                    column1.setPreferredWidth(150);
+                } else if (i == 3) {
+                    column1.setPreferredWidth(350);
+                } else
+                    column1.setPreferredWidth(50);
+            }
+
+            tableMain.setBackground(Color.WHITE);
+            tableMain.setForeground(Color.black);
+            Font font1 = new Font("", 1, 22);
+            tableMain.setFont(font1);
+            tableMain.setRowHeight(30);
+
+            payments.select(0);
+
+            btnBack.setVisible(false);
+            btnAdd.setEnabled(true);
+            btnConfirmStatus.setEnabled(true);
+            btnDelete.setEnabled(true);
+            btnUpdate.setEnabled(true);
         });
 
         // get selected row data From table to textfields
@@ -355,116 +331,104 @@ public class RegistryWindow extends JFrame{
             @Override
             public void mouseClicked(MouseEvent e) {
 
+                if (tableMain.getModel() instanceof MyTableModel) {
+
                     // i = the index of the selected row
                     int i = tableMain.getSelectedRow();
 
                     companiesField.setSelectedItem(tableMain.getValueAt(i, 1).toString());
-                    sumTextField.setText(tableMain.getValueAt(i, 2).toString());
+                    sumTextField.setValue(tableMain.getValueAt(i, 2));
                     purposesField.setSelectedItem(tableMain.getValueAt(i, 3).toString());
+
+                }
 
             }
         });
 
         // button update row
-        btnUpdate.addActionListener(new ActionListener() {
+        btnUpdate.addActionListener(e -> {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
+            // i = the index of the selected row
+            int i = tableMain.getSelectedRow();
 
-                // i = the index of the selected row
-                int i = tableMain.getSelectedRow();
+            String reportDate = getDate();
+            String nameInCompany = companiesField.getSelectedItem().toString();
+            String sumInSum = sumTextField.getValue().toString();
+            String purposeInPurpose = purposesField.getSelectedItem().toString();
 
-                String reportDate = getDate();
-                String nameInCompany = companiesField.getSelectedItem().toString();
-                String sumInSum = sumTextField.getText();
-                String purposeInPurpose = purposesField.getSelectedItem().toString();
+            if (!nameInCompany.equals(tableMain.getValueAt(i, 1))){
 
-                if (!nameInCompany.equals(tableMain.getValueAt(i, 1))){
+                Companies companie = new Companies(conn, tableMain.getValueAt(i, 1));
 
-                    Companies companie = new Companies(conn, tableMain.getValueAt(i, 1));
+                companie.update(companie.getCompanyNameId(), nameInCompany);
 
-                    companie.update(companie.getCompanyNameId(), nameInCompany);
+                tableMain.setValueAt(nameInCompany, i, 1);
+                companiesField.fillComboBox();
+                companiesField.setSelectedItem(tableMain.getValueAt(i, 1));
 
-                    tableMain.setValueAt(nameInCompany, i, 1);
-                    companiesField.fillComboBox();
-                    companiesField.setSelectedItem(tableMain.getValueAt(i, 1));
+            }else if (!sumInSum.equals(tableMain.getValueAt(i, 2))){
 
-                }else if (!sumInSum.equals(tableMain.getValueAt(i, 2))){
+                long company= new Companies(conn, nameInCompany).getCompanyNameId();
+                long purpose= new Purposes(conn, purposeInPurpose).getWhatPayForId();
 
-                    long company= new Companies(conn, nameInCompany).getCompanyNameId();
-                    long purpose= new Purposes(conn, purposeInPurpose).getWhatPayForId();
+                Payments payment = new Payments(conn,
+                                                reportDate,
+                        (Double) tableMain.getValueAt(i, 2),
+                                                company,
+                                                purpose);
 
-                    Payments payment = new Payments(conn,
-                                                    reportDate,
-                                                    tableMain.getValueAt(i, 2),
-                                                    company,
-                                                    purpose);
+                payment.update(payment.getPayment(), sumInSum);
 
-                    payment.update(payment.getPayment(), sumInSum);
+                labelSumOfSums.setText("TOTAL: " + payments.getTotal());
 
-                    sum = payment.getTotal();
-                    labelSumOfSums.setText("TOTAL: " + sum);
+                tableMain.setValueAt(sumInSum, i, 2);
 
-                    tableMain.setValueAt(sumInSum, i, 2);
+            }else if(!purposeInPurpose.equals(tableMain.getValueAt(i, 3))){
 
-                }else if(!purposeInPurpose.equals(tableMain.getValueAt(i, 3))){
+                Purposes purpose = new Purposes(conn, tableMain.getValueAt(i, 3));
 
-                    Purposes purpose = new Purposes(conn, tableMain.getValueAt(i, 3));
+                purpose.update(purpose.getWhatPayForId(), purposeInPurpose);
 
-                    purpose.update(purpose.getWhatPayForId(), purposeInPurpose);
+                tableMain.setValueAt(purposeInPurpose, i, 3);
+                purposesField.fillComboBox();
+                purposesField.setSelectedItem(tableMain.getValueAt(i, 1));
 
-                    tableMain.setValueAt(purposeInPurpose, i, 3);
-                    purposesField.fillComboBox();
-                    purposesField.setSelectedItem(tableMain.getValueAt(i, 1));
+            }else{
 
-                }else{
-
-                    JOptionPane.showMessageDialog(null, "No updates");
-                }
+                JOptionPane.showMessageDialog(null, "No updates");
             }
         });
 
-        btnConfirmStatus.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        btnConfirmStatus.addActionListener(e -> {
 
-                Thread statusUpdate = new Thread(){
+            Thread statusUpdate = new Thread(){
 
-                    Companies companies;
-                    Purposes purposes;
-                    Payments payments;
+                Companies companies;
+                Purposes purposes;
+                Payments payments;
 
-                    int n = tableMain.getRowCount();
+                int n = tableMain.getRowCount();
 
-                    public void run(){
+                public void run(){
 
-                        for (int i = 0; i < n; i++) {
+                    for (int i = 0; i < n; i++) {
 
-                            companies = new Companies(conn, tableMain.getValueAt(i, 1));
-                            purposes = new Purposes(conn, tableMain.getValueAt(i, 3));
+                        companies = new Companies(conn, tableMain.getValueAt(i, 1));
+                        purposes = new Purposes(conn, tableMain.getValueAt(i, 3));
 
-                            payments = new Payments(conn,
-                                                    getDate(),
-                                                    tableMain.getValueAt(i, 2),
-                                                    companies.getCompanyNameId(),
-                                                    purposes.getWhatPayForId());
+                        payments = new Payments(conn,
+                                                getDate(),
+                                (Double) tableMain.getValueAt(i, 2),
+                                                companies.getCompanyNameId(),
+                                                purposes.getWhatPayForId());
 
-                            payments.updateStatus((boolean)tableMain.getValueAt(i, 4));
-                        }
+                        payments.updateStatus((boolean)tableMain.getValueAt(i, 4));
                     }
-                };
+                }
+            };
 
-                statusUpdate.start();
-            }
+            statusUpdate.start();
         });
-
-        pack();
-        setSize(900, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        companiesField.requestFocusInWindow();
-        setVisible(true);
-
     }
 
     private String getDate() {

@@ -35,7 +35,7 @@ public class MyTableModel extends DefaultTableModel {
                 clazz = Integer.class;
                 break;
             case 2:
-                clazz = Integer.class;
+                clazz = Double.class;
                 break;
             case 4:
                 clazz = Boolean.class;

@@ -2,8 +2,6 @@
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,6 +30,7 @@ public class LoadFrame extends JFrame {
     JButton btnConfirmStatus;
     JButton btnDelete;
     JButton btnUpdate;
+    JLabel lblTotal;
 
     public LoadFrame(Connection conn,
                      JTable tableLoad,
@@ -40,7 +39,8 @@ public class LoadFrame extends JFrame {
                      JButton btnAdd,
                      JButton btnConfirmStatus,
                      JButton btnDelete,
-                     JButton btnUpdate){
+                     JButton btnUpdate,
+                     JLabel lblTotal){
 
         this.conn = conn;
         this.tableLoad = tableLoad;
@@ -50,6 +50,7 @@ public class LoadFrame extends JFrame {
         this.btnConfirmStatus = btnConfirmStatus;
         this.btnDelete = btnDelete;
         this.btnUpdate = btnUpdate;
+        this.lblTotal = lblTotal;
 
         //Set the main theme to the load window
         try {
@@ -101,80 +102,78 @@ public class LoadFrame extends JFrame {
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
+        this.setResizable(false);
 
-        confirm.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        confirm.addActionListener(e -> {
 
-                if (modelLoad.getRowCount() > 0){
+            if (modelLoad.getRowCount() > 0){
 
-                    modelLoad.setRowCount(0);
-                }
-
-                tableLoad.setModel(modelLoad);
-
-                TableColumn columnLoad;
-                for (int i = 0; i < 6; i++) {
-
-                    columnLoad = tableLoad.getColumnModel().getColumn(i);
-
-                    if (i == 0) {
-                        columnLoad.setPreferredWidth(30);
-                    } else if (i == 1) {
-                        columnLoad.setPreferredWidth(100);
-                    } else if (i == 2) {
-                        columnLoad.setPreferredWidth(300);
-                    } else if (i == 3) {
-                        columnLoad.setPreferredWidth(120);
-                    } else if (i == 4) {
-                        columnLoad.setPreferredWidth(300);
-                    }else
-                        columnLoad.setPreferredWidth(50);
-                }
-
-                tableLoad.setBackground(Color.white);
-                tableLoad.setForeground(Color.black);
-                Font font = new Font("", 2, 15);
-                tableLoad.setFont(font);
-                tableLoad.setRowHeight(20);
-
-                Object name = companies.getSelectedItem();
-                Object what = purposes.getSelectedItem();
-
-                if (name == null && what == null) {
-
-                    Payments payments = new Payments(conn, tableLoad, modelLoad);
-                    payments.selectForLoad(getDateFrom(), getDateTo(), 0, 0);
-
-                }else if (name == null){
-
-                    Purposes pur = new Purposes(conn, what);
-                    Payments payments = new Payments(conn, tableLoad, modelLoad);
-                    payments.selectForLoad(getDateFrom(), getDateTo(), 0, pur.getWhatPayForId());
-
-                }else if (what == null){
-
-                    Companies com = new Companies(conn, name);
-                    Payments payments = new Payments(conn, tableLoad, modelLoad);
-                    payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), 0);
-
-                }else {
-
-                    Companies com = new Companies(conn, name);
-                    Purposes pur = new Purposes(conn, what);
-                    Payments payments = new Payments(conn, tableLoad, modelLoad);
-                    payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), pur.getWhatPayForId());
-
-                }
-
-                btnBack.setVisible(true);
-                btnAdd.setEnabled(false);
-                btnConfirmStatus.setEnabled(false);
-                btnDelete.setEnabled(false);
-                btnUpdate.setEnabled(false);
-
-                dispose();
+                modelLoad.setRowCount(0);
             }
+
+            tableLoad.setModel(modelLoad);
+
+            TableColumn columnLoad;
+            for (int i = 0; i < 6; i++) {
+
+                columnLoad = tableLoad.getColumnModel().getColumn(i);
+
+                if (i == 0) {
+                    columnLoad.setPreferredWidth(30);
+                } else if (i == 1) {
+                    columnLoad.setPreferredWidth(100);
+                } else if (i == 2) {
+                    columnLoad.setPreferredWidth(300);
+                } else if (i == 3) {
+                    columnLoad.setPreferredWidth(120);
+                } else if (i == 4) {
+                    columnLoad.setPreferredWidth(300);
+                }else
+                    columnLoad.setPreferredWidth(50);
+            }
+
+            tableLoad.setBackground(Color.white);
+            tableLoad.setForeground(Color.black);
+            Font font1 = new Font("", 2, 15);
+            tableLoad.setFont(font1);
+            tableLoad.setRowHeight(20);
+
+            Object name1 = companies.getSelectedItem();
+            Object what = purposes.getSelectedItem();
+
+            if (name1 == null && what == null) {
+
+                Payments payments = new Payments(conn, tableLoad, modelLoad);
+                payments.selectForLoad(getDateFrom(), getDateTo(), 0, 0);
+
+            }else if (name1 == null){
+
+                Purposes pur = new Purposes(conn, what);
+                Payments payments = new Payments(conn, tableLoad, modelLoad);
+                payments.selectForLoad(getDateFrom(), getDateTo(), 0, pur.getWhatPayForId());
+
+            }else if (what == null){
+
+                Companies com = new Companies(conn, name1);
+                Payments payments = new Payments(conn, tableLoad, modelLoad);
+                payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), 0);
+
+            }else {
+
+                Companies com = new Companies(conn, name1);
+                Purposes pur = new Purposes(conn, what);
+                Payments payments = new Payments(conn, tableLoad, modelLoad);
+                payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), pur.getWhatPayForId());
+
+            }
+
+            btnBack.setVisible(true);
+            btnAdd.setEnabled(false);
+            btnConfirmStatus.setEnabled(false);
+            btnDelete.setEnabled(false);
+            btnUpdate.setEnabled(false);
+
+            dispose();
         });
     }
 

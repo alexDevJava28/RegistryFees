@@ -20,11 +20,11 @@ public class Payments implements SQLCommands {
     JTable table;
     DefaultTableModel model;
 
-    Payments(Connection conn, String date, Object sum, long companyNameListId, long whatPayForListId){
+    Payments(Connection conn, String date, Double sum, long companyNameListId, long whatPayForListId){
 
         this.conn = conn;
         this.date = date;
-        this.sum = Double.parseDouble(sum.toString());
+        this.sum = sum;
         this.companyNameLisId = companyNameListId;
         this.whatPayForListId = whatPayForListId;
     }
@@ -90,7 +90,7 @@ public class Payments implements SQLCommands {
 
                 int id = model.getRowCount()+1;
                 String name = rs.getString(1);
-                String sum = rs.getString(2);
+                double sum = rs.getDouble(2);
                 String what = rs.getString(3);
 
                 model.addRow(new Object[]{id, name, sum, what});
@@ -163,7 +163,7 @@ public class Payments implements SQLCommands {
                 row [0] = model.getRowCount()+1;
                 row [1] = rs.getString(1);
                 row [2] = rs.getString(2);
-                row [3] = rs.getString(3);
+                row [3] = rs.getDouble(3);
                 row [4] = rs.getString(4);
                 row [5] = rs.getBoolean(5);
 
@@ -363,9 +363,9 @@ public class Payments implements SQLCommands {
         return payment;
     }
 
-    public long getTotal (){
+    public double getTotal (){
 
-        long total = 0;
+        double total = 0.00;
 
         try{
 
@@ -403,13 +403,14 @@ public class Payments implements SQLCommands {
         return total;
     }
 
-    public long getTotal (String date){
+    public double getTotal (String dateFrom, String dateTo){
 
-        long total = 0;
+        double total = 0.00;
 
         try{
 
-            String sql = "SELECT SUM(SUM)FROM Payments WHERE DAY = '" + date + "'";
+            String sql = "SELECT SUM(SUM)FROM Payments WHERE DAY >= '" + date + "' " +
+                    "AND DAY <= '" + dateTo + "'";
 
             sta = conn.createStatement();
 
@@ -417,7 +418,7 @@ public class Payments implements SQLCommands {
 
                 if (rs.next()){
 
-                    total = rs.getLong(1);
+                    total = rs.getDouble(1);
                 }
             }
         }catch (SQLException e){

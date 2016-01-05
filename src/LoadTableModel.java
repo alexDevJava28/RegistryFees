@@ -29,7 +29,7 @@ public class LoadTableModel extends DefaultTableModel {
                 clazz = Integer.class;
                 break;
             case 3:
-                clazz = Integer.class;
+                clazz = Double.class;
                 break;
             case 5:
                 clazz = Boolean.class;
