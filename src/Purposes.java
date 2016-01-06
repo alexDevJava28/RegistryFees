@@ -10,12 +10,12 @@ public class Purposes implements SQLCommands{
     Connection conn;
     PreparedStatement psta;
     Statement sta;
-    String whatPayFor;
+    Object whatPayFor;
 
     Purposes(Connection conn, Object whatPayFor){
 
         this.conn = conn;
-        this.whatPayFor = whatPayFor.toString();
+        this.whatPayFor = whatPayFor;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class Purposes implements SQLCommands{
             String insert = "INSERT INTO Purposes (PURPOSE, TEXT) VALUES (PURPOSES_SEQ.nextval, ?)";
 
             psta = conn.prepareStatement(insert);
-            psta.setString(1, whatPayFor);
+            psta.setString(1, String.valueOf(whatPayFor));
 
             psta.executeUpdate();
 
@@ -46,7 +46,7 @@ public class Purposes implements SQLCommands{
             String delete = "DELETE FROM Purposes WHERE TEXT = ?";
 
             psta = conn.prepareStatement(delete);
-            psta.setString(1, whatPayFor);
+            psta.setString(1, String.valueOf(whatPayFor));
 
             psta.executeUpdate();
 
@@ -56,9 +56,9 @@ public class Purposes implements SQLCommands{
         }
     }
 
-    public long getWhatPayForId (){
+    public Long getWhatPayForId (){
 
-        int id = 0;
+        Long id = null;
 
         try {
 
@@ -69,7 +69,7 @@ public class Purposes implements SQLCommands{
             {
                 if (result.next()){
 
-                    id = result.getInt(1);
+                    id = result.getLong(1);
                 }
             }
 

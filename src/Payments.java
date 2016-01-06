@@ -2,6 +2,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.sql.*;
+import java.util.*;
+import java.util.Date;
 
 /**
  * Created by khodackovskiy on 10.12.2015.
@@ -13,14 +15,14 @@ public class Payments implements SQLCommands {
     ResultSet rs;
     Statement sta;
 
-    String date;
+    java.sql.Date date;
     double sum;
-    long companyNameLisId;
-    long whatPayForListId;
+    Long companyNameLisId;
+    Long whatPayForListId;
     JTable table;
     DefaultTableModel model;
 
-    Payments(Connection conn, String date, Double sum, long companyNameListId, long whatPayForListId){
+    Payments(Connection conn, java.sql.Date date, Double sum, Long companyNameListId, Long whatPayForListId){
 
         this.conn = conn;
         this.date = date;
@@ -44,7 +46,7 @@ public class Payments implements SQLCommands {
             String insert = "INSERT INTO Payments VALUES (PAYMENTS_SEQ.nextval, ?, ?, ?, ?, 0)";
 
             psta = conn.prepareStatement(insert);
-            psta.setString(1, date);
+            psta.setDate(1, date);
             psta.setLong(2, companyNameLisId);
             psta.setDouble(3, sum);
             psta.setLong(4, whatPayForListId);
@@ -109,59 +111,33 @@ public class Payments implements SQLCommands {
         table.setModel(model);
     }
 
-    public void selectForLoad(String dateFrom, String dateTo, long company, long purpose) {
+    public void selectForLoad(java.sql.Date dateFrom, java.sql.Date dateTo, Long company, Long purpose) {
 
-        String sql = "";
         Object[] row = new Object[6];
 
         try{
 
-            if (company == 0 & purpose == 0) {
+            String sql = "SELECT p.DAY, c.NAME, p.SUM, pu.TEXT, p.STATUS " +
+                    "FROM Payments p " +
+                    "LEFT JOIN Companies c ON c.COMPANY = p.COMPANY " +
+                    "LEFT JOIN Purposes pu ON pu.PURPOSE = p.PURPOSE " +
+                    "WHERE p.DAY >= ? " +
+                    "AND p.DAY <= ? " +
+                    "AND p.COMPANY = NVL(?, p.COMPANY) " +
+                    "AND p.PURPOSE = NVL(?, p.PURPOSE)";
 
-                sql = "SELECT p.DAY, c.NAME, p.SUM, pu.TEXT, p.STATUS " +
-                        "FROM Payments p " +
-                        "LEFT JOIN Companies c ON c.COMPANY = p.COMPANY " +
-                        "LEFT JOIN Purposes pu ON pu.PURPOSE = p.PURPOSE " +
-                        "WHERE p.DAY >= '" + dateFrom + "' " +
-                        "AND p.DAY <= '" + dateTo + "'";
+            psta = conn.prepareStatement(sql);
+            psta.setDate(1, dateFrom);
+            psta.setDate(2, dateTo);
+            psta.setObject(3, company);
+            psta.setObject(4, purpose);
 
-            }else if (purpose == 0){
-
-                sql = "SELECT p.DAY, c.NAME, p.SUM, pu.TEXT, p.STATUS " +
-                        "FROM Payments p " +
-                        "LEFT JOIN Companies c ON c.COMPANY = p.COMPANY " +
-                        "LEFT JOIN Purposes pu ON pu.PURPOSE = p.PURPOSE " +
-                        "WHERE p.DAY >= '" + dateFrom + "' " +
-                        "AND p.DAY <= '" + dateTo + "' " +
-                        "AND p.COMPANY = " + company;
-            }else if (company == 0) {
-
-                sql = "SELECT p.DAY, c.NAME, p.SUM, pu.TEXT, p.STATUS " +
-                        "FROM Payments p " +
-                        "LEFT JOIN Companies c ON c.COMPANY = p.COMPANY " +
-                        "LEFT JOIN Purposes pu ON pu.PURPOSE = p.PURPOSE " +
-                        "WHERE p.DAY >= '" + dateFrom + "' " +
-                        "AND p.DAY <= '" + dateTo + "' " +
-                        "AND p.PURPOSE = " + purpose;
-            }else {
-
-                sql="SELECT p.DAY, c.NAME, p.SUM, pu.TEXT, p.STATUS " +
-                        "FROM Payments p " +
-                        "LEFT JOIN Companies c ON c.COMPANY = p.COMPANY " +
-                        "LEFT JOIN Purposes pu ON pu.PURPOSE = p.PURPOSE " +
-                        "WHERE p.DAY >= '" + dateFrom + "' " +
-                        "AND p.DAY <= '" + dateTo + "' " +
-                        "AND p.COMPANY = " + company +
-                        " AND p.PURPOSE = " + purpose;
-            }
-
-            sta = conn.createStatement();
-            rs = sta.executeQuery(sql);
+            rs = psta.executeQuery();
 
             while (rs.next()){
 
                 row [0] = model.getRowCount()+1;
-                row [1] = rs.getString(1);
+                row [1] = rs.getDate(1);
                 row [2] = rs.getString(2);
                 row [3] = rs.getDouble(3);
                 row [4] = rs.getString(4);
@@ -195,7 +171,7 @@ public class Payments implements SQLCommands {
                     "AND PURPOSE = ?";
 
             psta = conn.prepareStatement(delete);
-            psta.setString(1, date);
+            psta.setDate(1, date);
             psta.setLong(2, companyNameLisId);
             psta.setDouble(3, sum);
             psta.setLong(4, whatPayForListId);
@@ -240,15 +216,16 @@ public class Payments implements SQLCommands {
         }
     }
 
-    public void updateDate(String date) {
+    public void updateDate(java.sql.Date date) {
 
         try{
 
-            String update = "UPDATE Payments SET DAY = '" + date + "' WHERE STATUS = 0 " +
-                    "AND DAY <> '" + date + "'";
+            String update = "UPDATE Payments SET DAY = ? WHERE STATUS = 0";
 
-            sta = conn.createStatement();
-            sta.executeUpdate(update);
+            psta = conn.prepareStatement(update);
+            psta.setDate(1, date);
+
+            psta.executeUpdate();
 
         }catch (SQLException e){
 
@@ -256,11 +233,11 @@ public class Payments implements SQLCommands {
 
         }finally {
 
-            if (sta != null){
+            if (psta != null){
 
                 try{
 
-                    sta.close();
+                    psta.close();
 
                 }catch (SQLException e){
 
@@ -377,7 +354,7 @@ public class Payments implements SQLCommands {
 
                 if (rs.next()){
 
-                    total = rs.getLong(1);
+                    total = rs.getDouble(1);
                 }
             }
         }catch (SQLException e){

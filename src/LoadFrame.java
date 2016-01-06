@@ -3,8 +3,6 @@ import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.sql.Connection;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 /**
  * Created by Пользователь on 27.12.2015.
@@ -138,34 +136,12 @@ public class LoadFrame extends JFrame {
             tableLoad.setFont(font1);
             tableLoad.setRowHeight(20);
 
-            Object name1 = companies.getSelectedItem();
-            Object what = purposes.getSelectedItem();
+            Payments payments = new Payments(conn, tableLoad, modelLoad);
+            Companies com = new Companies(conn, companies.getSelectedItem());
+            Purposes pur = new Purposes(conn, purposes.getSelectedItem());
 
-            if (name1 == null && what == null) {
+            payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), pur.getWhatPayForId());
 
-                Payments payments = new Payments(conn, tableLoad, modelLoad);
-                payments.selectForLoad(getDateFrom(), getDateTo(), 0, 0);
-
-            }else if (name1 == null){
-
-                Purposes pur = new Purposes(conn, what);
-                Payments payments = new Payments(conn, tableLoad, modelLoad);
-                payments.selectForLoad(getDateFrom(), getDateTo(), 0, pur.getWhatPayForId());
-
-            }else if (what == null){
-
-                Companies com = new Companies(conn, name1);
-                Payments payments = new Payments(conn, tableLoad, modelLoad);
-                payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), 0);
-
-            }else {
-
-                Companies com = new Companies(conn, name1);
-                Purposes pur = new Purposes(conn, what);
-                Payments payments = new Payments(conn, tableLoad, modelLoad);
-                payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), pur.getWhatPayForId());
-
-            }
 
             btnBack.setVisible(true);
             btnAdd.setEnabled(false);
@@ -177,17 +153,17 @@ public class LoadFrame extends JFrame {
         });
     }
 
-    public String getDateFrom (){
+    public java.sql.Date getDateFrom (){
 
         java.util.Date selectedDate = (java.util.Date) datePickerFrom.getjDatePicker().getModel().getValue();
-        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        return df.format(selectedDate);
+        java.sql.Date sqlDate = new java.sql.Date(selectedDate.getTime());
+        return sqlDate;
     }
 
-    public String getDateTo (){
+    public java.sql.Date getDateTo (){
 
-        java.util.Date selectedDate = (java.util.Date) datePickerTo.getjDatePicker().getModel().getValue();
-        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        return df.format(selectedDate);
+        java.util.Date selectedDate = (java.util.Date) datePickerFrom.getjDatePicker().getModel().getValue();
+        java.sql.Date sqlDate = new java.sql.Date(selectedDate.getTime());
+        return sqlDate;
     }
 }

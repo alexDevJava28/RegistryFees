@@ -10,12 +10,12 @@ public class Companies implements SQLCommands {
     Connection conn;
     PreparedStatement psta;
     Statement sta;
-    String companyName;
+    Object companyName;
 
     Companies(Connection conn, Object companyName){
 
         this.conn = conn;
-        this.companyName = companyName.toString();
+        this.companyName = companyName;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class Companies implements SQLCommands {
             String insert = "INSERT INTO Companies (company, name) VALUES (COMPANIES_SEQ.nextval, ?)";
 
             psta = conn.prepareStatement(insert);
-            psta.setString(1, companyName);
+            psta.setString(1, String.valueOf(companyName));
 
             psta.executeUpdate();
 
@@ -46,7 +46,7 @@ public class Companies implements SQLCommands {
             String delete = "DELETE FROM Companies WHERE NAME = ?";
 
             psta = conn.prepareStatement(delete);
-            psta.setString(1, companyName);
+            psta.setString(1, String.valueOf(companyName));
 
             psta.executeUpdate();
 
@@ -57,9 +57,9 @@ public class Companies implements SQLCommands {
         }
     }
 
-    public long getCompanyNameId (){
+    public Long getCompanyNameId (){
 
-        long id = 0;
+        Long id = null;
 
         try {
 

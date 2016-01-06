@@ -1,13 +1,10 @@
 
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -187,7 +184,7 @@ public class RegistryWindow extends JFrame{
                 row[3] = purposesField.getSelectedItem();
 
                 //get selected date from datePicker
-                String reportDate = getDate();
+                java.sql.Date reportDate = getDate();
 
                 Companies companies = new Companies(conn, row[1]);
                 companies.insert();
@@ -224,7 +221,7 @@ public class RegistryWindow extends JFrame{
             // i = the index of the selected row
             int i = tableMain.getSelectedRow();
 
-            String reportDate = getDate();
+            java.sql.Date reportDate = getDate();
 
                 Companies companies = new Companies(
                         conn,
@@ -351,7 +348,7 @@ public class RegistryWindow extends JFrame{
             // i = the index of the selected row
             int i = tableMain.getSelectedRow();
 
-            String reportDate = getDate();
+            java.sql.Date reportDate = getDate();
             String nameInCompany = companiesField.getSelectedItem().toString();
             String sumInSum = sumTextField.getValue().toString();
             String purposeInPurpose = purposesField.getSelectedItem().toString();
@@ -431,10 +428,13 @@ public class RegistryWindow extends JFrame{
         });
     }
 
-    private String getDate() {
-        Date selectedDate = (Date) datePicker.getjDatePicker().getModel().getValue();
-        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        return df.format(selectedDate);
+    private java.sql.Date getDate() {
+
+        java.util.Date date = (java.util.Date) datePicker.getjDatePicker().getModel().getValue();
+        java.sql.Date sqlDate = new java.sql.Date(date.getTime());
+
+        return sqlDate;
+
     }
 
     public static void currentTime() {
