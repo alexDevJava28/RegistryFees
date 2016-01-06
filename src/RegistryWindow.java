@@ -350,7 +350,7 @@ public class RegistryWindow extends JFrame{
 
             java.sql.Date reportDate = getDate();
             String nameInCompany = companiesField.getSelectedItem().toString();
-            String sumInSum = sumTextField.getValue().toString();
+            Object sumInSum = sumTextField.getValue();
             String purposeInPurpose = purposesField.getSelectedItem().toString();
 
             if (!nameInCompany.equals(tableMain.getValueAt(i, 1))){
@@ -365,8 +365,8 @@ public class RegistryWindow extends JFrame{
 
             }else if (!sumInSum.equals(tableMain.getValueAt(i, 2))){
 
-                long company= new Companies(conn, nameInCompany).getCompanyNameId();
-                long purpose= new Purposes(conn, purposeInPurpose).getWhatPayForId();
+                Long company= new Companies(conn, nameInCompany).getCompanyNameId();
+                Long purpose= new Purposes(conn, purposeInPurpose).getWhatPayForId();
 
                 Payments payment = new Payments(conn,
                                                 reportDate,

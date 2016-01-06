@@ -24,9 +24,9 @@ public class SumTextField extends JFormattedTextField {
         super();
 
         // create the formatters, default, display, edit
-        defaultFormatter = new NumberFormatter(new DecimalFormat("#.##"));
+        defaultFormatter = new NumberFormatter(new DecimalFormat("#,###.##"));
         displayFormatter = new NumberFormatter(new DecimalFormat("#,###.##"));
-        editFormatter = new NumberFormatter(new DecimalFormat("#.##"));
+        editFormatter = new NumberFormatter(new DecimalFormat("#,###.##"));
 
         // set their value classes
         defaultFormatter.setValueClass(Double.class);
