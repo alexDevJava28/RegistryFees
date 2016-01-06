@@ -257,20 +257,24 @@ public class Payments implements SQLCommands {
 
             if (status) {
 
-                update = "UPDATE Payments SET STATUS = 1 WHERE DAY = '" + date + "' " +
-                        "AND COMPANY = " + companyNameLisId +
-                        " AND SUM = " + sum +
-                        " AND PURPOSE = " + whatPayForListId;
+                update = "UPDATE Payments SET STATUS = 1 WHERE DAY = ? " +
+                        "AND COMPANY = ? " +
+                        "AND SUM = ? " +
+                        "AND PURPOSE = ?";
             }else {
 
-                update = "UPDATE Payments SET STATUS = 0 WHERE DAY = '" + date + "' " +
-                        "AND COMPANY = " + companyNameLisId +
-                        " AND SUM = " + sum +
-                        " AND PURPOSE = " + whatPayForListId;
+                update = "UPDATE Payments SET STATUS = 0 WHERE DAY = ? " +
+                        "AND COMPANY = ? " +
+                        "AND SUM = ? " +
+                        "AND PURPOSE = ?";
             }
 
-            sta = conn.createStatement();
-            sta.executeUpdate(update);
+            psta = conn.prepareStatement(update);
+            psta.setDate(1, date);
+            psta.setLong(2, companyNameLisId);
+            psta.setDouble(3, sum);
+            psta.setLong(4, whatPayForListId);
+            psta.executeUpdate();
 
         }catch (SQLException e){
 
@@ -278,11 +282,11 @@ public class Payments implements SQLCommands {
 
         }finally {
 
-            if (sta != null){
+            if (psta != null){
 
                 try{
 
-                    sta.close();
+                    psta.close();
 
                 }catch (SQLException e){
 
@@ -294,21 +298,26 @@ public class Payments implements SQLCommands {
         }
     }
 
-    public long getPayment(){
+    public Long getPayment(){
 
-        long payment = 0;
+        Long payment = null;
 
         try {
 
             String select = "SELECT PAYMENT FROM Payments WHERE " +
                     "STATUS = 0 " +
-                    "AND DAY = '" + date + "' " +
-                    "AND COMPANY = " + companyNameLisId +
-                    " AND SUM = " + sum +
-                    " AND PURPOSE = " + whatPayForListId;
-            sta = conn.createStatement();
+                    "AND DAY = ? " +
+                    "AND COMPANY = ? " +
+                    "AND SUM = ?" +
+                    "AND PURPOSE = ?";
 
-            try (ResultSet result = sta.executeQuery(select))
+            psta = conn.prepareStatement(select);
+            psta.setDate(1, date);
+            psta.setLong(2, companyNameLisId);
+            psta.setDouble(3, sum);
+            psta.setLong(4, whatPayForListId);
+
+            try (ResultSet result = psta.executeQuery())
             {
                 if (result.next()){
 
@@ -318,15 +327,15 @@ public class Payments implements SQLCommands {
 
         }catch (SQLException e){
 
-            JOptionPane.showMessageDialog(null, "Get Id Error in What pay for list");
             e.printStackTrace();
+
         }finally {
 
-            if (sta != null){
+            if (psta != null){
 
                 try{
 
-                    sta.close();
+                    psta.close();
 
                 }catch (SQLException e){
 

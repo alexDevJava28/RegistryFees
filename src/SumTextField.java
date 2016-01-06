@@ -44,7 +44,7 @@ public class SumTextField extends JFormattedTextField {
 
     public JLabel getLabel (){
 
-        sumLabel = new JLabel("Company");
+        sumLabel = new JLabel("Sum");
         sumLabel.setBounds(290, 200, 150, 15);
 
         return sumLabel;

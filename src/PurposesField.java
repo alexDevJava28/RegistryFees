@@ -32,7 +32,7 @@ public class PurposesField extends JComboBox {
 
     public JLabel getLabel (){
 
-        labelWhatPayFor = new JLabel("Company");
+        labelWhatPayFor = new JLabel("Purpose");
         labelWhatPayFor.setBounds(460, 200, 420, 15);
 
         return labelWhatPayFor;

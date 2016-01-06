@@ -1,5 +1,4 @@
 
-
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
@@ -170,9 +169,9 @@ public class RegistryWindow extends JFrame{
         // button add row
         btnAdd.addActionListener(e -> {
 
-            if (companiesField.getSelectedItem().equals("") ||
+            if (companiesField.getSelectedItem() == null ||
                     sumTextField.getValue() == null ||
-                    purposesField.getSelectedItem().equals("")) {
+                    purposesField.getSelectedItem() == null) {
 
                 JOptionPane.showMessageDialog(null, "Fill all fields, please!");
 
