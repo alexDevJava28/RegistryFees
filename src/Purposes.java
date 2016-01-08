@@ -32,7 +32,7 @@ public class Purposes implements SQLCommands{
 
         }catch (SQLException e){
 
-            JOptionPane.showMessageDialog(null, "Insert Error in What pay for list");
+            e.printStackTrace();
 
         }
 

@@ -1,8 +1,5 @@
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxEditor;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,18 +14,17 @@ public class CompaniesField extends JComboBox{
     JLabel labelCompanyName;
     Connection conn;
     Statement sta;
-    public int caretPos=0;
-    public JTextField inputField=null;
+    AutoCompletion autoCompletion;
 
     public CompaniesField(Connection conn) {
 
         this.conn = conn;
 
         fillComboBox();
+        setEditable(true);
         setSelectedItem(null);
 
-        setEditor(new BasicComboBoxEditor());
-        setEditable(true);
+        autoCompletion = new AutoCompletion(this);
 
     }
 
@@ -81,56 +77,4 @@ public class CompaniesField extends JComboBox{
         }
     }
 
-    public void setSelectedIndex(int index) {
-
-        super.setSelectedIndex(index);
-
-        inputField.setText(getItemAt(index).toString());
-        inputField.setSelectionEnd(caretPos + inputField.getText().length());
-        inputField.moveCaretPosition(caretPos);
-    }
-
-    public void setEditor(ComboBoxEditor editor) {
-
-        super.setEditor(editor);
-
-        if (editor.getEditorComponent() instanceof JTextField) {
-
-            inputField = (JTextField) editor.getEditorComponent();
-
-            inputField.addKeyListener(new KeyAdapter() {
-
-                public void keyReleased( KeyEvent ev ) {
-
-                    char key = ev.getKeyChar();
-
-                    if (! (Character.isLetterOrDigit(key) || Character.isSpaceChar(key) )) return;
-
-                    caretPos=inputField.getCaretPosition();
-                    String text="";
-
-                    try {
-
-                        text=inputField.getText(0, caretPos);
-
-                    }
-                    catch (javax.swing.text.BadLocationException e) {
-
-                        e.printStackTrace();
-                    }
-
-                    for (int i=0; i<getItemCount(); i++) {
-
-                        String element = getItemAt(i).toString();
-
-                        if (element.startsWith(text)) {
-
-                            setSelectedIndex(i);
-                            return;
-                        }
-                    }
-                }
-            });
-        }
-    }
 }

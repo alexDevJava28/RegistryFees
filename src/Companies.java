@@ -32,7 +32,6 @@ public class Companies implements SQLCommands {
 
         }catch (SQLException e){
 
-            JOptionPane.showMessageDialog(null, "Insert Error in Company name list");
             e.printStackTrace();
 
         }

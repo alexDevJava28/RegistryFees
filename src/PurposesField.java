@@ -1,6 +1,5 @@
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,19 +13,17 @@ public class PurposesField extends JComboBox {
     JLabel labelWhatPayFor;
     private Connection conn;
     Statement sta;
-    JTextComponent editor;
+    AutoCompletion autoCompletion;
 
     public PurposesField(Connection conn) {
 
         this.conn = conn;
 
         fillComboBox();
+        setEditable(true);
+        setSelectedItem(null);
 
-        this.setEditable(true);
-        this.setSelectedItem(null);
-
-        editor = (JTextComponent) this.getEditor().getEditorComponent();
-
+        autoCompletion = new AutoCompletion(this);
 
     }
 

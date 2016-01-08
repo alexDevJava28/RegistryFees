@@ -17,6 +17,10 @@ public class RegistryWindow extends JFrame{
     JLabel labelSumOfSums;
     JTable tableMain;
 
+    SumTextField sumTextField;
+    CompaniesField companiesField;
+    PurposesField purposesField;
+
     JButton btnAdd;
     JButton btnDelete;
     JButton btnUpdate;
@@ -85,10 +89,10 @@ public class RegistryWindow extends JFrame{
         payments.select(0);
 
         // create JComboBoxes and JTextFields
-        CompaniesField companiesField = new CompaniesField(conn);
+        companiesField = new CompaniesField(conn);
         companiesField.setBounds(20, 220, 250, 25);
-        SumTextField sumTextField = new SumTextField();
-        PurposesField purposesField = new PurposesField(conn);
+        sumTextField = new SumTextField();
+        purposesField = new PurposesField(conn);
         purposesField.setBounds(460, 220, 420, 25);
 
         // create JLabels for time and total
@@ -160,11 +164,7 @@ public class RegistryWindow extends JFrame{
         // create an array of objects to set the row data
         Object[] row = new Object[5];
 
-        companiesField.addActionListener(e -> sumTextField.requestFocus());
-
         sumTextField.addActionListener(e -> purposesField.requestFocus());
-
-        purposesField.addActionListener(e -> btnAdd.requestFocus());
 
         // button add row
         btnAdd.addActionListener(e -> {
@@ -202,12 +202,18 @@ public class RegistryWindow extends JFrame{
 
                 // add row to the model
                 modelMain.addRow(row);
+                modelMain.setValueAt(false, tableMain.getRowCount()-1, 4);
 
                 //make text fields empty
                 sumTextField.setValue(null);
 
                 //refresh a total of registry
                 labelSumOfSums.setText("TOTAL: " + payments1.getTotal());
+
+                companiesField.fillComboBox();
+                companiesField.setSelectedItem(null);
+                purposesField.fillComboBox();
+                purposesField.setSelectedItem(null);
 
                 //change focus
                 companiesField.requestFocus();
