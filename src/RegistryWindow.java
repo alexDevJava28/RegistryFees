@@ -1,10 +1,12 @@
 
 import org.jdatepicker.impl.JDatePickerImpl;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
 
@@ -29,6 +31,7 @@ public class RegistryWindow extends JFrame{
     JButton btnLoadData;
     JButton btnConfirmStatus;
     JButton btnBack;
+    JButton btnToExcel;
 
     private static JLabel lblClock;
 
@@ -112,6 +115,7 @@ public class RegistryWindow extends JFrame{
         btnLoadData = new JButton("Load Data");
         btnConfirmStatus = new JButton("Confirm Status");
         btnBack = new JButton("Back");
+        btnToExcel = new JButton(new ImageIcon("excel.png"));
 
         lblClock.setBounds(350, 320, 250, 30);
         labelSumOfSums.setBounds(300, 250, 250, 30);
@@ -123,6 +127,7 @@ public class RegistryWindow extends JFrame{
         btnConfirmStatus.setBounds(130, 285, 100, 25);
         btnBack.setBounds(750, 320, 100, 25);
         btnBack.setVisible(false);
+        btnToExcel.setBounds(855, 320, 25, 25);
 
         // create JScrollPane for Main Table
         JScrollPane paneMain = new JScrollPane(tableMain);
@@ -153,6 +158,7 @@ public class RegistryWindow extends JFrame{
         add(btnLoadData);
         add(btnConfirmStatus);
         add(btnBack);
+        add(btnToExcel);
         getRootPane().setDefaultButton(btnAdd);
 
         pack();
