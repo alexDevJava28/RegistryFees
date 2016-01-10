@@ -6,6 +6,7 @@ import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
@@ -115,7 +116,7 @@ public class RegistryWindow extends JFrame{
         btnLoadData = new JButton("Load Data");
         btnConfirmStatus = new JButton("Confirm Status");
         btnBack = new JButton("Back");
-        btnToExcel = new JButton(new ImageIcon("excel.png"));
+        btnToExcel = new JButton(new ImageIcon(new ImageIcon(getClass().getResource("/resources/images/excel.png")).getImage().getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
 
         lblClock.setBounds(350, 320, 250, 30);
         labelSumOfSums.setBounds(300, 250, 250, 30);
@@ -446,6 +447,15 @@ public class RegistryWindow extends JFrame{
             };
 
             statusUpdate.start();
+        });
+
+        btnToExcel.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                new ExcelExporter().exportTable(tableMain, new File("D:\\123.xls"));
+
+            }
         });
     }
 

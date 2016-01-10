@@ -3,7 +3,6 @@ import javax.swing.table.TableModel;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 /**
  * Created by Пользователь on 10.01.2016.
  */
@@ -23,7 +22,7 @@ public class ExcelExporter {
 
            excel.write("\n");
 
-           for (int i = 0; i < model.getRowCount(); i++) {
+           for (int i = 1; i < model.getRowCount(); i++) {
 
                for (int j = 0; j < model.getColumnCount(); j++) {
 
