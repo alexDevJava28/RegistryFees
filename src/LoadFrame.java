@@ -1,4 +1,6 @@
 
+import org.jdatepicker.impl.JDatePickerImpl;
+
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
@@ -10,8 +12,8 @@ import java.sql.Connection;
 public class LoadFrame extends JFrame {
 
     Connection conn;
-    DatePicker datePickerFrom = new DatePicker();
-    DatePicker datePickerTo = new DatePicker();
+    JDatePickerImpl datePickerFrom = new DatePicker().getjDatePicker();
+    JDatePickerImpl datePickerTo = new DatePicker().getjDatePicker();
     JPanel boxes;
     JPanel datePeriod;
     JLabel lblCompanies;
@@ -23,31 +25,16 @@ public class LoadFrame extends JFrame {
     JButton confirm;
     JTable tableLoad;
     LoadTableModel modelLoad;
-    JButton btnBack;
-    JButton btnAdd;
-    JButton btnConfirmStatus;
-    JButton btnDelete;
-    JButton btnUpdate;
     JLabel lblTotal;
 
     public LoadFrame(Connection conn,
                      JTable tableLoad,
                      LoadTableModel modelLoad,
-                     JButton btnBack,
-                     JButton btnAdd,
-                     JButton btnConfirmStatus,
-                     JButton btnDelete,
-                     JButton btnUpdate,
                      JLabel lblTotal){
 
         this.conn = conn;
         this.tableLoad = tableLoad;
         this.modelLoad = modelLoad;
-        this.btnBack = btnBack;
-        this.btnAdd = btnAdd;
-        this.btnConfirmStatus = btnConfirmStatus;
-        this.btnDelete = btnDelete;
-        this.btnUpdate = btnUpdate;
         this.lblTotal = lblTotal;
 
         //Set the main theme to the load window
@@ -88,9 +75,9 @@ public class LoadFrame extends JFrame {
         boxes.add(confirm, new FlowLayout(FlowLayout.CENTER));
 
         datePeriod.add(lblDatefrom);
-        datePeriod.add(datePickerFrom.getjDatePicker());
+        datePeriod.add(datePickerFrom);
         datePeriod.add(lblDateTo);
-        datePeriod.add(datePickerTo.getjDatePicker());
+        datePeriod.add(datePickerTo);
 
         this.add(boxes, BorderLayout.SOUTH);
         this.add(datePeriod);
@@ -142,27 +129,20 @@ public class LoadFrame extends JFrame {
 
             payments.selectForLoad(getDateFrom(), getDateTo(), com.getCompanyNameId(), pur.getWhatPayForId());
 
-
-            btnBack.setVisible(true);
-            btnAdd.setEnabled(false);
-            btnConfirmStatus.setEnabled(false);
-            btnDelete.setEnabled(false);
-            btnUpdate.setEnabled(false);
-
             dispose();
         });
     }
 
     public java.sql.Date getDateFrom (){
 
-        java.util.Date selectedDate = (java.util.Date) datePickerFrom.getjDatePicker().getModel().getValue();
+        java.util.Date selectedDate = (java.util.Date) datePickerFrom.getModel().getValue();
         java.sql.Date sqlDate = new java.sql.Date(selectedDate.getTime());
         return sqlDate;
     }
 
     public java.sql.Date getDateTo (){
 
-        java.util.Date selectedDate = (java.util.Date) datePickerFrom.getjDatePicker().getModel().getValue();
+        java.util.Date selectedDate = (java.util.Date) datePickerTo.getModel().getValue();
         java.sql.Date sqlDate = new java.sql.Date(selectedDate.getTime());
         return sqlDate;
     }

@@ -1,4 +1,6 @@
 
+import org.jdatepicker.impl.JDatePickerImpl;
+
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
@@ -13,7 +15,7 @@ public class RegistryWindow extends JFrame{
 
     MyTableModel modelMain;
     LoadTableModel modelLoad;
-    DatePicker datePicker = new DatePicker();
+    JDatePickerImpl datePicker = new DatePicker().getjDatePicker();
     JLabel labelSumOfSums;
     JTable tableMain;
 
@@ -130,7 +132,7 @@ public class RegistryWindow extends JFrame{
 
         add(paneMain);
 
-        add(datePicker.getjDatePicker());
+        add(datePicker);
 
         // add JLabels to the jframe
         add(lblClock);
@@ -278,7 +280,14 @@ public class RegistryWindow extends JFrame{
 
                 public void run(){
 
-                    new LoadFrame(conn, tableMain, modelLoad, btnBack, btnAdd, btnConfirmStatus, btnDelete, btnUpdate, labelSumOfSums);
+                    btnAdd.setEnabled(false);
+                    btnUpdate.setEnabled(false);
+                    btnDelete.setEnabled(false);
+                    btnConfirmStatus.setEnabled(false);
+                    btnBack.setVisible(true);
+                    datePicker.setVisible(false);
+
+                    new LoadFrame(conn, tableMain, modelLoad, labelSumOfSums);
 
                 }
             };
@@ -325,6 +334,7 @@ public class RegistryWindow extends JFrame{
             btnConfirmStatus.setEnabled(true);
             btnDelete.setEnabled(true);
             btnUpdate.setEnabled(true);
+            datePicker.setVisible(true);
         });
 
         // get selected row data From table to textfields
@@ -435,7 +445,7 @@ public class RegistryWindow extends JFrame{
 
     private java.sql.Date getDate() {
 
-        java.util.Date date = (java.util.Date) datePicker.getjDatePicker().getModel().getValue();
+        java.util.Date date = (java.util.Date) datePicker.getModel().getValue();
         java.sql.Date sqlDate = new java.sql.Date(date.getTime());
 
         return sqlDate;
