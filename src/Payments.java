@@ -95,7 +95,7 @@ public class Payments implements SQLCommands {
                 double sum = rs.getDouble(2);
                 String what = rs.getString(3);
 
-                model.addRow(new Object[]{id, name, sum, what});
+                model.addRow(new Object[]{id, name, sum, what, false});
             }
         }
         catch(SQLException e){

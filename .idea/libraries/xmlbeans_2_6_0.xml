@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="xmlbeans-2.6.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/xmlbeans-2.6.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/poi-ooxml-3.13-20150929.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
