@@ -1,45 +1,72 @@
+
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Date;
+
 /**
  * Created by Пользователь on 10.01.2016.
  */
 public class ExcelExporter {
 
-    public void exportTable (JTable table, File file){
+    XSSFWorkbook workbook;
+    XSSFSheet sheet;
+    XSSFRow row;
+    XSSFCell cell;
 
-       try {
+    TableModel model;
 
-           TableModel model = table.getModel();
-           FileWriter excel = new FileWriter(file);
 
-           for (int i = 0; i < model.getColumnCount(); i++) {
+    public void exportTable (JTable table, Date date) {
 
-               excel.write(model.getColumnName(i) + "\t");
-           }
+            try{
 
-           excel.write("\n");
+                workbook = new XSSFWorkbook();
+                sheet = workbook.createSheet("Registry");
 
-           for (int i = 1; i < model.getRowCount(); i++) {
+                row = sheet.createRow(0);
+                cell = row.createCell(1);
+                cell.setCellValue(date);
 
-               for (int j = 0; j < model.getColumnCount(); j++) {
+                model = table.getModel();
 
-                   excel.write(model.getValueAt(i, j).toString() + "\t");
+                row = sheet.createRow(2);
 
-               }
+                for (int i = 0; i <model.getColumnCount(); i++) {
 
-               excel.write("\n");
+                    cell = row.createCell(0);
+                    cell.setCellValue(model.getColumnName(i));
 
-           }
+                }
 
-           excel.close();
+                for (int i = 1; i < model.getRowCount(); i++) {
 
-       }catch (IOException e){
+                    row = sheet.createRow(i+2);
 
-           e.printStackTrace();
-       }
+                        for (int j = 0; j < model.getColumnCount(); j++) {
 
+                            cell = row.createCell(j);
+                            cell.setCellValue(model.getValueAt(i, j).toString());
+
+                        }
+
+                }
+
+            FileOutputStream out = new FileOutputStream(new File("123.xlsx"));
+            workbook.write(out);
+            out.close();
+
+            }catch (IOException e){
+
+                e.printStackTrace();
+
+        }
     }
 }

@@ -453,7 +453,7 @@ public class RegistryWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                new ExcelExporter().exportTable(tableMain, new File("D:\\123.xls"));
+                new ExcelExporter().exportTable(tableMain, getDate());
 
             }
         });
