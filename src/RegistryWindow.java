@@ -128,7 +128,7 @@ public class RegistryWindow extends JFrame{
         btnConfirmStatus.setBounds(130, 285, 100, 25);
         btnBack.setBounds(750, 320, 100, 25);
         btnBack.setVisible(false);
-        btnToExcel.setBounds(855, 320, 25, 25);
+        btnToExcel.setBounds(840, 305, 40, 40);
 
         // create JScrollPane for Main Table
         JScrollPane paneMain = new JScrollPane(tableMain);
