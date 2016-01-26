@@ -14,5 +14,6 @@
     <orderEntry type="library" exported="" name="poi-ooxml-3.13-20150929" level="project" />
     <orderEntry type="library" exported="" name="poi-ooxml-schemas-3.13-20150929" level="project" />
     <orderEntry type="library" exported="" name="xmlbeans-2.6.0" level="project" />
+    <orderEntry type="library" name="javax.mail" level="project" />
   </component>
 </module>

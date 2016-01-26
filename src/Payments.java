@@ -12,6 +12,7 @@ public class Payments implements SQLCommands {
 
     Connection conn;
     PreparedStatement psta;
+    CallableStatement cs;
     ResultSet rs;
     Statement sta;
 
@@ -251,30 +252,28 @@ public class Payments implements SQLCommands {
 
     public void updateStatus(boolean status) {
 
-        String update;
-
         try{
 
             if (status) {
 
-                update = "UPDATE Payments SET STATUS = 1 WHERE DAY = ? " +
-                        "AND COMPANY = ? " +
-                        "AND SUM = ? " +
-                        "AND PURPOSE = ?";
+                String sql = "{call UPDATE_STATUS_TO_1(?, ?, ?, ?)}";
+                cs = conn.prepareCall(sql);
+                cs.setDate("US_DAY", date);
+                cs.setLong("US_COMPANY", companyNameLisId);
+                cs.setDouble("US_SUM", sum);
+                cs.setLong("US_PURPOSE", whatPayForListId);
+
             }else {
 
-                update = "UPDATE Payments SET STATUS = 0 WHERE DAY = ? " +
-                        "AND COMPANY = ? " +
-                        "AND SUM = ? " +
-                        "AND PURPOSE = ?";
+                String sql = "{call UPDATE_STATUS_TO_0(?, ?, ?, ?)}";
+                cs = conn.prepareCall(sql);
+                cs.setDate("US_DAY", date);
+                cs.setLong("US_COMPANY", companyNameLisId);
+                cs.setDouble("US_SUM", sum);
+                cs.setLong("US_PURPOSE", whatPayForListId);
             }
 
-            psta = conn.prepareStatement(update);
-            psta.setDate(1, date);
-            psta.setLong(2, companyNameLisId);
-            psta.setDouble(3, sum);
-            psta.setLong(4, whatPayForListId);
-            psta.executeUpdate();
+            cs.executeUpdate();
 
         }catch (SQLException e){
 
@@ -356,47 +355,6 @@ public class Payments implements SQLCommands {
         try{
 
             String sql = "SELECT SUM(SUM)FROM Payments WHERE STATUS = 0";
-
-            sta = conn.createStatement();
-
-            try (ResultSet rs = sta.executeQuery(sql)){
-
-                if (rs.next()){
-
-                    total = rs.getDouble(1);
-                }
-            }
-        }catch (SQLException e){
-
-            e.printStackTrace();
-        }finally {
-
-            if (sta != null){
-
-                try{
-
-                    sta.close();
-
-                }catch (SQLException e){
-
-                    e.printStackTrace();
-                }
-
-            }
-
-        }
-
-        return total;
-    }
-
-    public double getTotal (String dateFrom, String dateTo){
-
-        double total = 0.00;
-
-        try{
-
-            String sql = "SELECT SUM(SUM)FROM Payments WHERE DAY >= '" + date + "' " +
-                    "AND DAY <= '" + dateTo + "'";
 
             sta = conn.createStatement();
 

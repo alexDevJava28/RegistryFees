@@ -1,14 +1,14 @@
 
+import email.SwingEmailSender;
 import org.jdatepicker.impl.JDatePickerImpl;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
-import java.io.IOException;
+import java.awt.print.PrinterException;
 import java.sql.Connection;
+import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -33,6 +33,10 @@ public class RegistryWindow extends JFrame{
     JButton btnConfirmStatus;
     JButton btnBack;
     JButton btnToExcel;
+    JButton btnPrint;
+    JButton btnMail;
+
+    JMenuBar menuBar;
 
     private static JLabel lblClock;
 
@@ -116,7 +120,24 @@ public class RegistryWindow extends JFrame{
         btnLoadData = new JButton("Load Data");
         btnConfirmStatus = new JButton("Confirm Status");
         btnBack = new JButton("Back");
-        btnToExcel = new JButton(new ImageIcon(new ImageIcon(getClass().getResource("/resources/images/excel.png")).getImage().getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
+        btnToExcel = new JButton(
+                        new ImageIcon(
+                                new ImageIcon(getClass()
+                                        .getResource("/resources/images/excel.png"))
+                                            .getImage()
+                                                .getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
+        btnPrint = new JButton(
+                        new ImageIcon(
+                                new ImageIcon(getClass()
+                                        .getResource("/resources/images/print.png"))
+                                            .getImage()
+                                                .getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
+        btnMail = new JButton(
+                        new ImageIcon(
+                            new ImageIcon(getClass()
+                                .getResource("/resources/images/email.png"))
+                                    .getImage()
+                                        .getScaledInstance(25, 25, Image.SCALE_SMOOTH)));
 
         lblClock.setBounds(350, 320, 250, 30);
         labelSumOfSums.setBounds(300, 250, 250, 30);
@@ -133,6 +154,14 @@ public class RegistryWindow extends JFrame{
         // create JScrollPane for Main Table
         JScrollPane paneMain = new JScrollPane(tableMain);
         paneMain.setBounds(0, 0, 880, 200);
+
+        menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+        JMenu menu = new JMenu("File");
+        menuBar.add(menu);
+        menuBar.add(btnToExcel);
+        menuBar.add(btnPrint);
+        menuBar.add(btnMail);
 
         setLayout(null);
 
@@ -159,11 +188,10 @@ public class RegistryWindow extends JFrame{
         add(btnLoadData);
         add(btnConfirmStatus);
         add(btnBack);
-        add(btnToExcel);
         getRootPane().setDefaultButton(btnAdd);
 
         pack();
-        setSize(900, 400);
+        setSize(900, 430);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         companiesField.requestFocusInWindow();
@@ -449,12 +477,37 @@ public class RegistryWindow extends JFrame{
             statusUpdate.start();
         });
 
-        btnToExcel.addActionListener(new ActionListener() {
+        btnToExcel.addActionListener(e -> new ExcelExporter().exportTable(tableMain, getDate()));
+
+        btnPrint.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                new ExcelExporter().exportTable(tableMain, getDate());
+                try{
 
+                    MessageFormat header = new MessageFormat("REGISTRY OF PAYMENTS");
+                    MessageFormat footer = new MessageFormat("- {0} -");
+
+                    tableMain.print(JTable.PrintMode.FIT_WIDTH, header, footer);
+
+                }catch (PrinterException q){
+
+                    q.printStackTrace();
+                }
+            }
+        });
+
+        btnMail.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        new SwingEmailSender().setVisible(true);
+                    }
+                });
             }
         });
     }
