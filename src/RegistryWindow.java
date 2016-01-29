@@ -1,14 +1,24 @@
 
+import com.itextpdf.text.Document;
 import email.SwingEmailSender;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.jdatepicker.impl.JDatePickerImpl;
+import print.JtableInPDF;
+import print.PrintPreview;
 
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
+import javax.print.attribute.standard.PageRanges;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.*;
-import java.awt.print.PrinterException;
+import java.awt.print.*;
+import java.io.IOException;
 import java.sql.Connection;
-import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -114,12 +124,42 @@ public class RegistryWindow extends JFrame{
         labelSumOfSums.setFont(new Font ("", Font.BOLD, 20));
 
         // create JButtons
-        btnAdd = new JButton("Add");
-        btnDelete = new JButton("Delete");
-        btnUpdate = new JButton("Update");
-        btnLoadData = new JButton("Load Data");
-        btnConfirmStatus = new JButton("Confirm Status");
-        btnBack = new JButton("Back");
+        btnAdd = new JButton("ADD",
+                    new ImageIcon(
+                        new ImageIcon(getClass()
+                                .getResource("/resources/images/addButton.png"))
+                                    .getImage()
+                                        .getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
+        btnDelete = new JButton("DELETE",
+                        new ImageIcon(
+                            new ImageIcon(getClass()
+                                .getResource("/resources/images/deleteButton.png"))
+                                    .getImage()
+                                        .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
+        btnUpdate = new JButton("UPDATE",
+                        new ImageIcon(
+                            new ImageIcon(getClass()
+                                .getResource("/resources/images/updateButton.png"))
+                                    .getImage()
+                                        .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
+        btnLoadData = new JButton("LOAD",
+                        new ImageIcon(
+                            new ImageIcon(getClass()
+                                .getResource("/resources/images/loadButton.png"))
+                                    .getImage()
+                                        .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
+        btnConfirmStatus = new JButton("Confirm",
+                            new ImageIcon(
+                                new ImageIcon(getClass()
+                                    .getResource("/resources/images/confirmButton.png"))
+                                        .getImage()
+                                            .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
+        btnBack = new JButton("BACK",
+                    new ImageIcon(
+                            new ImageIcon(getClass()
+                                 .getResource("/resources/images/backButton.png"))
+                                     .getImage()
+                                          .getScaledInstance(18, 18, Image.SCALE_SMOOTH)));
         btnToExcel = new JButton(
                         new ImageIcon(
                                 new ImageIcon(getClass()
@@ -143,11 +183,34 @@ public class RegistryWindow extends JFrame{
         labelSumOfSums.setBounds(300, 250, 250, 30);
 
         btnAdd.setBounds(20, 250, 100, 25);
+        btnAdd.setHorizontalTextPosition(SwingConstants.TRAILING);
+        btnAdd.setVerticalTextPosition(JButton.CENTER);
+        btnAdd.setHorizontalAlignment(SwingConstants.LEFT);
+
         btnUpdate.setBounds(20, 285, 100, 25);
+        btnUpdate.setHorizontalTextPosition(SwingConstants.TRAILING);
+        btnUpdate.setVerticalTextPosition(JButton.CENTER);
+        btnUpdate.setHorizontalAlignment(SwingConstants.LEFT);
+
         btnDelete.setBounds(20, 320, 100, 25);
+        btnDelete.setHorizontalTextPosition(SwingConstants.TRAILING);
+        btnDelete.setVerticalTextPosition(JButton.CENTER);
+        btnDelete.setHorizontalAlignment(SwingConstants.LEFT);
+
         btnLoadData.setBounds(130, 320, 100, 25);
+        btnLoadData.setHorizontalTextPosition(SwingConstants.TRAILING);
+        btnLoadData.setVerticalTextPosition(JButton.CENTER);
+        btnLoadData.setHorizontalAlignment(SwingConstants.LEFT);
+
         btnConfirmStatus.setBounds(130, 285, 100, 25);
+        btnConfirmStatus.setHorizontalTextPosition(SwingConstants.TRAILING);
+        btnConfirmStatus.setVerticalTextPosition(JButton.CENTER);
+        btnConfirmStatus.setHorizontalAlignment(SwingConstants.LEFT);
+
         btnBack.setBounds(750, 320, 100, 25);
+        btnBack.setHorizontalTextPosition(SwingConstants.TRAILING);
+        btnBack.setVerticalTextPosition(JButton.CENTER);
+        btnBack.setHorizontalAlignment(SwingConstants.LEFT);
         btnBack.setVisible(false);
         btnToExcel.setBounds(840, 305, 40, 40);
 
@@ -483,16 +546,17 @@ public class RegistryWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                try{
+                try {
 
-                    MessageFormat header = new MessageFormat("REGISTRY OF PAYMENTS");
-                    MessageFormat footer = new MessageFormat("- {0} -");
+                    JtableInPDF pdf = new JtableInPDF(tableMain, getDate());
+                    PDDocument doc = PDDocument.load(pdf.createPDF());
 
-                    tableMain.print(JTable.PrintMode.FIT_WIDTH, header, footer);
+                    new PrintPreview(doc);
 
-                }catch (PrinterException q){
+                }catch (IOException ioe){
 
-                    q.printStackTrace();
+                    ioe.printStackTrace();
+
                 }
             }
         });
