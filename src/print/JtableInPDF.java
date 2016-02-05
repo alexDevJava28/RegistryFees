@@ -1,16 +1,16 @@
 package print;
 
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
+import org.apache.pdfbox.exceptions.COSVisitorException;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import javax.swing.*;
-import java.awt.print.Printable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import javax.swing.table.TableModel;
+import java.io.*;
 import java.util.Date;
 
 /**
@@ -20,101 +20,473 @@ public class JtableInPDF {
 
     private JTable table;
     private Date date;
-    File file;
+    private double total;
+    private PDDocument doc;
 
-    public JtableInPDF(JTable table, Date date) {
+    private final int colWidth1 = 30;
+    private final int colWidth2 = 250;
+    private final int colWidth3 = 100;
+    private final int colWidth4 = 350;
+    private final int colWidth5 = 72;
+    private final int rowHeight = 20;
+    private final int endPage = 70;
+
+
+
+
+    public JtableInPDF(JTable table, Date date, double total) {
 
         this.table = table;
         this.date = date;
+        this.total = total;
     }
 
-    public File createPDF() {
+    public PDDocument createPDF() {
 
-        try {
-            file = new File("print.pdf");
-            OutputStream os = new FileOutputStream(file);
+            try(PDDocument insideDoc = new PDDocument()){
 
-            Document doc = new Document(PageSize.A4.rotate());
-            PdfWriter.getInstance(doc, os);
+                if (table.getModel().getColumnCount() == 5) {
 
-            doc.open();
-            doc.add(new Paragraph("Registry of payments"));
-            doc.add(new Paragraph(new Date().toString()));
+                    createNewPage(insideDoc);
 
-            //Create Paragraph
-            Paragraph paragraph = new Paragraph(date.toString(),
-                    new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN,
-                            18,
-                            com.itextpdf.text.Font.BOLD));
-            paragraph.setAlignment(Paragraph.ALIGN_CENTER);
+                }else {
 
-            //New line
-            paragraph.add(new Paragraph(" "));
-            doc.add(paragraph);
+                    createNewPageLoad(insideDoc);
 
-            //create  Table
-            PdfPTable pdfPTable = new PdfPTable(table.getColumnCount());
-            pdfPTable.setWidthPercentage(100);
-            pdfPTable.setSpacingBefore(0f);
-            pdfPTable.setSpacingAfter(0f);
+                }
 
-            //adding table headers
-            for (int i = 0; i < table.getColumnCount(); i++) {
+                doc = insideDoc;
+                doc.save("print.pdf");
 
-                PdfPCell cell = new PdfPCell(new Phrase(table.getColumnName(i)));
-                cell.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
-                pdfPTable.addCell(cell);
+            }catch (IOException ioe){
 
+                ioe.printStackTrace();
+
+            }catch (COSVisitorException cve){
+
+                cve.printStackTrace();
             }
 
-            // Defiles the relative width of the columns
-            float[] columnWidths = new float[]{3f, 20f, 10f, 30f, 7f};
-            pdfPTable.setWidths(columnWidths);
+        return doc;
+    }
 
-            //extracting data from the Jtable  and inserting it to Pdf file
-            PdfPCell cell;
+    public void createNewPage(PDDocument doc){
 
-            for (int rows = 0; rows < table.getRowCount() - 1; rows++) {
+        TableModel model = table.getModel();
+        int rows = model.getRowCount()+1;
+        int cols = model.getColumnCount();
 
-                for (int cols = 0; cols < table.getColumnCount(); cols++) {
+        int x = 20;
+        int y = 550;
 
-                    cell = new PdfPCell(new Phrase(table.getModel().getValueAt(rows, cols).toString()));
+            //Create new page
+            PDFont font = PDType1Font.HELVETICA;
+            int fontSize = 12;
 
-                    switch (cols) {
+            PDPage page = new PDPage(PDPage.PAGE_SIZE_A4);
+            page.setRotation(90);
+            doc.addPage(page);
+
+            PDRectangle pageSize = page.findMediaBox();
+            float pageWidth = pageSize.getWidth();
+
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+
+                // add the rotation using the current transformation matrix
+                // including a translation of pageWidth to use the lower left corner as 0,0 reference
+                cs.concatenate2CTM(0, 1, -1, 0, pageWidth, 0);
+
+                cs.setFont(font, fontSize);
+                cs.beginText();
+                cs.moveTextPositionByAmount(x, y);
+                cs.drawString("Registy of payments");
+                cs.endText();
+                cs.beginText();
+                cs.moveTextPositionByAmount(x, y - 20);
+                cs.drawString(new Date().toString());
+                cs.endText();
+
+                cs.setFont(PDType1Font.HELVETICA_BOLD, 24);
+                cs.beginText();
+                cs.moveTextPositionByAmount(x + 330, y - 70);
+                cs.drawString(date.toString());
+                cs.endText();
+
+            } catch (IOException ioe) {
+
+                ioe.printStackTrace();
+            }
+
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page, true, true)) {
+
+
+                int nexty = y - 100;
+
+                drawTable(x, nexty, rows, cs, page, doc);
+
+                font = PDType1Font.HELVETICA_BOLD;
+                fontSize = 12;
+                cs.setFont(font, fontSize);
+
+                float textx = x;
+                float texty = nexty - rowHeight + (rowHeight - fontSize) / 2;
+
+                for (int i = 0; i < cols; i++) {
+
+                    float width = font.getStringWidth(model.getColumnName(i)) / 1000 * fontSize;
+
+                    switch (i) {
 
                         case 0:
-                            cell.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+                            textx += (colWidth1 - width) / 2;
                             break;
                         case 1:
-                            cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
+                            textx += (colWidth2 - width) / 2;
                             break;
                         case 2:
-                            cell.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+                            textx += (colWidth3 - width) / 2;
                             break;
                         case 3:
-                            cell.setHorizontalAlignment(PdfPCell.ALIGN_LEFT);
+                            textx += (colWidth4 - width) / 2;
                             break;
                         case 4:
-                            cell.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+                            textx += (colWidth5 - width) / 2;
+                            break;
                     }
 
-                    pdfPTable.addCell(cell);
+                    cs.beginText();
+                    cs.moveTextPositionByAmount(textx, texty);
+                    cs.drawString(model.getColumnName(i));
+                    cs.endText();
+
+                    switch (i) {
+
+                        case 0:
+                            textx += width + (colWidth1 - width) / 2;
+                            break;
+                        case 1:
+                            textx += width + (colWidth2 - width) / 2;
+                            break;
+                        case 2:
+                            textx += width + (colWidth3 - width) / 2;
+                            break;
+                        case 3:
+                            textx += width + (colWidth4 - width) / 2;
+                            break;
+                        case 4:
+                            textx += width + (colWidth5 - width) / 2;
+                            break;
+                    }
+
+                }
+
+                fillTable(x, nexty, rows, cols, model, 0, cs, doc);
+
+            } catch (IOException ioe) {
+
+                ioe.printStackTrace();
+            }
+    }
+
+    public void createNewPageLoad(PDDocument doc){
+
+        TableModel model = table.getModel();
+        date = null;
+        int rows = model.getRowCount()+1;
+        int cols = model.getColumnCount();
+
+        int x = 20;
+        int y = 550;
+
+        for (int k = 0; k < rows-1; k++) {
+
+            if (!model.getValueAt(k, 1).equals(date)) {
+
+                date = (Date) model.getValueAt(k, 1);
+
+                //Create new page
+                PDFont font = PDType1Font.HELVETICA;
+                int fontSize = 12;
+
+                PDPage page = new PDPage(PDPage.PAGE_SIZE_A4);
+                page.setRotation(90);
+                doc.addPage(page);
+
+                PDRectangle pageSize = page.findMediaBox();
+                float pageWidth = pageSize.getWidth();
+
+                try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+
+                    // add the rotation using the current transformation matrix
+                    // including a translation of pageWidth to use the lower left corner as 0,0 reference
+                    cs.concatenate2CTM(0, 1, -1, 0, pageWidth, 0);
+
+                    cs.setFont(font, fontSize);
+                    cs.beginText();
+                    cs.moveTextPositionByAmount(x, y);
+                    cs.drawString("Registy of payments");
+                    cs.endText();
+                    cs.beginText();
+                    cs.moveTextPositionByAmount(x, y - 20);
+                    cs.drawString(new Date().toString());
+                    cs.endText();
+
+                    cs.setFont(PDType1Font.HELVETICA_BOLD, 24);
+                    cs.beginText();
+                    cs.moveTextPositionByAmount(x + 330, y - 70);
+                    cs.drawString(date.toString());
+                    cs.endText();
+
+                } catch (IOException ioe) {
+
+                    ioe.printStackTrace();
+                }
+
+                try (PDPageContentStream cs = new PDPageContentStream(doc, page, true, true)) {
+
+
+                    int nexty = y - 100;
+
+                    drawTable(x, nexty, rows, cs, page, doc);
+
+                    font = PDType1Font.HELVETICA_BOLD;
+                    fontSize = 12;
+                    cs.setFont(font, fontSize);
+
+                    float textx = x;
+                    float texty = nexty - rowHeight + (rowHeight - fontSize) / 2;
+
+                    for (int i = 0; i < cols; i++) {
+
+                        float width = font.getStringWidth(model.getColumnName(i)) / 1000 * fontSize;
+
+                        switch (i) {
+
+                            case 0:
+                                textx += (colWidth1 - width) / 2;
+                                break;
+                            case 1:
+                                textx += (colWidth2 - width) / 2;
+                                break;
+                            case 2:
+                                textx += (colWidth3 - width) / 2;
+                                break;
+                            case 3:
+                                textx += (colWidth4 - width) / 2;
+                                break;
+                            case 4:
+                                textx += (colWidth5 - width) / 2;
+                                break;
+                        }
+
+                        cs.beginText();
+                        cs.moveTextPositionByAmount(textx, texty);
+                        cs.drawString(model.getColumnName(i));
+                        cs.endText();
+
+                        switch (i) {
+
+                            case 0:
+                                textx += width + (colWidth1 - width) / 2;
+                                break;
+                            case 1:
+                                textx += width + (colWidth2 - width) / 2;
+                                break;
+                            case 2:
+                                textx += width + (colWidth3 - width) / 2;
+                                break;
+                            case 3:
+                                textx += width + (colWidth4 - width) / 2;
+                                break;
+                            case 4:
+                                textx += width + (colWidth5 - width) / 2;
+                                break;
+                        }
+
+                    }
+
+                    fillTable(x, nexty, rows, cols, model, 0, cs, doc);
+
+                } catch (IOException ioe) {
+
+                    ioe.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void drawTable (int x, int nexty, int rows, PDPageContentStream cs, PDPage page, PDDocument doc) throws IOException{
+
+            int nextyStart = nexty;
+            int rowCount = rows;
+
+            cs.setLineWidth(0.8f);
+
+            //draw the rows
+            float tableWidth = page.findMediaBox().getHeight() - x - x;
+
+            for (int i = 0; i <= rows; i++) {
+
+                cs.drawLine(x, nexty, x + tableWidth, nexty);
+                nexty -= rowHeight;
+                --rowCount;
+
+                if (rowCount == 0){
+
+                    cs.drawLine(x, nexty-20, x + tableWidth, nexty-20);
+
+                }
+
+                if (nexty <= endPage) {
+
+                    int start = 550;
+
+                    PDPage nowa = new PDPage(PDPage.PAGE_SIZE_A4);
+                    nowa.setRotation(90);
+                    doc.addPage(nowa);
+
+                    PDRectangle pageSize = nowa.findMediaBox();
+                    float pageWidth = pageSize.getWidth();
+
+                    try (PDPageContentStream newCS = new PDPageContentStream(doc, nowa, true, true)) {
+
+                        newCS.concatenate2CTM(0, 1, -1, 0, pageWidth, 0);
+                        drawTable(x, start, rowCount, newCS, nowa, doc);
+
+                    }
+
+                    nexty += rowHeight;
+                    break;
+
+                }
+            }
+
+            //draw the columns
+            int nextx = x;
+
+            cs.drawLine(nextx, nextyStart, nextx, nexty);
+            nextx += colWidth1;
+            cs.drawLine(nextx, nextyStart, nextx, nexty);
+            nextx += colWidth2;
+            cs.drawLine(nextx, nextyStart, nextx, nexty);
+            nextx += colWidth3;
+            cs.drawLine(nextx, nextyStart, nextx, nexty);
+            nextx += colWidth4;
+            cs.drawLine(nextx, nextyStart, nextx, nexty);
+            nextx += colWidth5;
+            cs.drawLine(nextx, nextyStart, nextx, nexty);
+
+    }
+
+    private void fillTable (int x, int nexty, int rows, int cols, TableModel model, int rowCount, PDPageContentStream cs, PDDocument doc) throws IOException{
+
+        PDFont font = PDType1Font.HELVETICA;
+        int fontSize = 12;
+        cs.setFont(font, fontSize);
+        float textx = x;
+        float texty = nexty - (rowHeight*2) + (rowHeight-fontSize)/2;
+        String text;
+        int countPage = 1;
+
+        for (int i = rowCount; i < rows-1; i++) {
+
+            for (int j = 0; j < cols; j++) {
+
+                text = model.getValueAt(i, j).toString();
+                float width = font.getStringWidth(text)/1000*fontSize;
+
+                switch (j){
+
+                    case 0:
+                        textx += (colWidth1 - width)/2;
+                        break;
+                    case 1:
+                        textx += 2;
+                        break;
+                    case 2:
+                        textx += (colWidth3 - width)/2;
+                        break;
+                    case 3:
+                        textx += 2;
+                        break;
+                    case 4:
+
+                        if (text.equals("false")){
+
+                            text = "not paid";
+
+                        }else{
+
+                            text = "paid";
+                        }
+
+                        width = font.getStringWidth(text)/1000*fontSize;
+                        textx += (colWidth5 - width)/2;
+                        break;
+                }
+
+                cs.beginText();
+                cs.moveTextPositionByAmount(textx, texty);
+                cs.drawString(text);
+                cs.endText();
+
+                switch (j){
+
+                    case 0:
+                        textx += width + (colWidth1 - width)/2;
+                        break;
+                    case 1:
+                        textx += colWidth2;
+                        break;
+                    case 2:
+                        textx += width + (colWidth3 - width)/2;
+                        break;
+                    case 3:
+                        textx += colWidth4;
+                        break;
+                    case 4:
+                        textx += width + (colWidth5 - width)/2;
+                        break;
                 }
 
             }
 
-            doc.add(pdfPTable);
-            doc.close();
+            textx = x;
+            texty -= rowHeight;
+            ++rowCount;
 
-        } catch (DocumentException de) {
+            if (texty <= endPage+10){
 
-            de.printStackTrace();
+                int start = 570;
 
-        } catch (FileNotFoundException fnfe) {
+                try(PDPageContentStream newCS = new PDPageContentStream(doc, (PDPage) doc.getDocumentCatalog().getAllPages().get(countPage), true, true)){
 
-            fnfe.printStackTrace();
+                    fillTable(x, start, rows, cols, model, rowCount, newCS, doc);
+                }
+
+                break;
+
+            }
+
         }
 
-        return file;
+        if (rowCount == rows-1) {
+
+            font = PDType1Font.HELVETICA_BOLD;
+            fontSize = 14;
+            cs.setFont(font, fontSize);
+            float widthTotal = font.getStringWidth(String.valueOf(total)) / 1000 * fontSize;
+            float textxTotal = textx + colWidth1 + colWidth2 + (colWidth3 - widthTotal) / 2;
+            cs.beginText();
+            cs.moveTextPositionByAmount(textx + colWidth1, texty);
+            cs.drawString("Total:");
+            cs.endText();
+            cs.beginText();
+            cs.moveTextPositionByAmount(textxTotal, texty);
+            cs.drawString(String.valueOf(total));
+            cs.endText();
+
+        }
+
     }
 }

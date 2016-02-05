@@ -1,22 +1,16 @@
 
-import com.itextpdf.text.Document;
 import email.SwingEmailSender;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.jdatepicker.impl.JDatePickerImpl;
 import print.JtableInPDF;
 import print.PrintPreview;
 
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.standard.PageRanges;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.*;
-import java.awt.print.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
@@ -546,18 +540,12 @@ public class RegistryWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                try {
+                    JtableInPDF pdf = new JtableInPDF(tableMain, getDate(), payments.getTotal());
 
-                    JtableInPDF pdf = new JtableInPDF(tableMain, getDate());
-                    PDDocument doc = PDDocument.load(pdf.createPDF());
+                    PDDocument doc = pdf.createPDF();
 
-                    new PrintPreview(doc);
+//                    new PrintPreview(doc);
 
-                }catch (IOException ioe){
-
-                    ioe.printStackTrace();
-
-                }
             }
         });
 
