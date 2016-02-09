@@ -7,8 +7,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
-import java.awt.print.Pageable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.IOException;
@@ -21,7 +22,6 @@ public class PrintPreview extends JFrame implements ActionListener{
     CardLayout cl = new CardLayout();
     JPanel imagePanel;
     JPanel topPanel;
-    JScrollPane jcp;
 
     JButton btnPrint;
     JButton btnClose;
@@ -29,7 +29,9 @@ public class PrintPreview extends JFrame implements ActionListener{
     JButton btnEnd;
     JButton btnForward;
     JButton btnBack;
-    JLabel lblCountPages;
+    JLabel lblCountPagesLeft;
+    JLabel lblCountPagesRight;
+    JComboBox comboBox;
 
     int count;
 
@@ -44,11 +46,13 @@ public class PrintPreview extends JFrame implements ActionListener{
     private void createPreview(){
 
         imagePanel = new JPanel(cl);
-        topPanel = new JPanel(new FlowLayout());
-        jcp = new JScrollPane(imagePanel);
-        jcp.setVisible(true);
 
-        lblCountPages = new JLabel();
+        topPanel = new JPanel(new FlowLayout());
+
+        lblCountPagesLeft = new JLabel("Page ");
+        lblCountPagesRight = new JLabel();
+
+        comboBox = new JComboBox();
 
         btnStart = new JButton(
                         new ImageIcon(
@@ -82,6 +86,13 @@ public class PrintPreview extends JFrame implements ActionListener{
                                             .getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
         btnClose = new JButton("Close");
 
+        btnStart.addActionListener(this);
+        btnBack.addActionListener(this);
+        btnForward.addActionListener(this);
+        btnEnd.addActionListener(this);
+        btnPrint.addActionListener(this);
+        btnClose.addActionListener(this);
+
         List<PDPage> pages = doc.getDocumentCatalog().getAllPages();
 
         for (int i = 0; i < pages.size(); i++) {
@@ -91,11 +102,11 @@ public class PrintPreview extends JFrame implements ActionListener{
                 BufferedImage bi = pages.get(i).convertToImage();
                 JLabel lblWithImage = new JLabel();
                 lblWithImage.setIcon(new ImageIcon(bi));
-                imagePanel.add(lblWithImage);
+                JScrollPane pane = new JScrollPane(lblWithImage);
+                imagePanel.add(String.valueOf(i+1), pane);
+                comboBox.addItem(String.valueOf(i+1));
 
-                ++count;
-                lblCountPages.setText("Page " + count + " of " + pages.size());
-
+                lblCountPagesRight.setText(" of " + pages.size());
 
             }catch (IOException ioe){
 
@@ -106,7 +117,9 @@ public class PrintPreview extends JFrame implements ActionListener{
 
         topPanel.add(btnStart);
         topPanel.add(btnBack);
-        topPanel.add(lblCountPages);
+        topPanel.add(lblCountPagesLeft);
+        topPanel.add(comboBox);
+        topPanel.add(lblCountPagesRight);
         topPanel.add(btnForward);
         topPanel.add(btnEnd);
         topPanel.add(btnPrint);
@@ -114,8 +127,22 @@ public class PrintPreview extends JFrame implements ActionListener{
 
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         this.getContentPane().add(topPanel, BorderLayout.NORTH);
-        this.getContentPane().add(jcp);
+        this.getContentPane().add(imagePanel);
         this.setVisible(true);
+
+        comboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+
+                cl.show(imagePanel, (String) comboBox.getSelectedItem());
+                btnBack.setEnabled(comboBox.getSelectedIndex() == 0 ? false : true);
+                btnForward.setEnabled(comboBox.getSelectedIndex() == (comboBox.getItemCount()-1) ? false : true);
+                btnStart.setEnabled(comboBox.getSelectedIndex() == 0 ? false : true);
+                btnEnd.setEnabled(comboBox.getSelectedIndex() == (comboBox.getItemCount()-1) ? false : true);
+                validate();
+
+            }
+        });
 
     }
 
@@ -143,17 +170,32 @@ public class PrintPreview extends JFrame implements ActionListener{
 
         } else if(obj == btnStart) {
 
-            imagePanel.getComponentAt(0, 0).setFocusable(true);
+            comboBox.setSelectedIndex(0);
 
         } else if(obj == btnBack) {
+
+            comboBox.setSelectedIndex(comboBox.getSelectedIndex() == 0 ? 0 : comboBox.getSelectedIndex() - 1);
+
+            if (comboBox.getSelectedIndex() == 0) {
+
+                btnBack.setEnabled(false);
+
+            }
 
 
         } else if(obj == btnForward) {
 
+            comboBox.setSelectedIndex(comboBox.getSelectedIndex() == comboBox.getItemCount() - 1 ? 0: comboBox.getSelectedIndex() + 1);
+
+            if (comboBox.getSelectedIndex() == comboBox.getItemCount() - 1) {
+
+                btnForward.setEnabled(false);
+
+            }
 
         } else if(obj == btnEnd) {
 
-
+            comboBox.setSelectedIndex(comboBox.getItemCount()-1);
 
         } else if(obj == btnClose)
 

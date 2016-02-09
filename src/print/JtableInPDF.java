@@ -11,6 +11,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import javax.swing.*;
 import javax.swing.table.TableModel;
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -30,9 +31,9 @@ public class JtableInPDF {
     private final int colWidth5 = 72;
     private final int rowHeight = 20;
     private final int endPage = 70;
-
-
-
+    private int pageCountLoad = 0;
+    private int rowCountByDate = 0;
+    private int rowsByDateText = 0;
 
     public JtableInPDF(JTable table, Date date, double total) {
 
@@ -41,7 +42,9 @@ public class JtableInPDF {
         this.total = total;
     }
 
-    public PDDocument createPDF() {
+    public File createPDF() {
+
+        File file = new File("print.pdf");
 
             try(PDDocument insideDoc = new PDDocument()){
 
@@ -56,24 +59,24 @@ public class JtableInPDF {
                 }
 
                 doc = insideDoc;
-                doc.save("print.pdf");
+                doc.save(file);
 
             }catch (IOException ioe){
 
                 ioe.printStackTrace();
 
-            }catch (COSVisitorException cve){
+            }catch (COSVisitorException cosve){
 
-                cve.printStackTrace();
+                cosve.printStackTrace();
             }
 
-        return doc;
+        return file;
     }
 
     public void createNewPage(PDDocument doc){
 
         TableModel model = table.getModel();
-        int rows = model.getRowCount()+1;
+        int rows = model.getRowCount();
         int cols = model.getColumnCount();
 
         int x = 20;
@@ -180,7 +183,7 @@ public class JtableInPDF {
 
                 }
 
-                fillTable(x, nexty, rows, cols, model, 0, cs, doc);
+                fillTable(x, nexty, rows, cols, model, 0, 1, cs, doc);
 
             } catch (IOException ioe) {
 
@@ -192,13 +195,13 @@ public class JtableInPDF {
 
         TableModel model = table.getModel();
         date = null;
-        int rows = model.getRowCount()+1;
+        int rows = model.getRowCount();
         int cols = model.getColumnCount();
 
         int x = 20;
         int y = 550;
 
-        for (int k = 0; k < rows-1; k++) {
+        for (int k = 0; k < rows; k++) {
 
             if (!model.getValueAt(k, 1).equals(date)) {
 
@@ -211,6 +214,7 @@ public class JtableInPDF {
                 PDPage page = new PDPage(PDPage.PAGE_SIZE_A4);
                 page.setRotation(90);
                 doc.addPage(page);
+                ++pageCountLoad;
 
                 PDRectangle pageSize = page.findMediaBox();
                 float pageWidth = pageSize.getWidth();
@@ -246,8 +250,19 @@ public class JtableInPDF {
 
 
                     int nexty = y - 100;
+                    int rowsByDate = 0;
 
-                    drawTable(x, nexty, rows, cs, page, doc);
+                    for (int c = 0; c < rows; c++) {
+
+                        if (date.equals(model.getValueAt(c, 1))){
+
+                            ++rowsByDate;
+
+                        }
+
+                    }
+
+                    drawTable(x, nexty, rowsByDate, cs, page, doc);
 
                     font = PDType1Font.HELVETICA_BOLD;
                     fontSize = 12;
@@ -258,6 +273,9 @@ public class JtableInPDF {
 
                     for (int i = 0; i < cols; i++) {
 
+                        if (i == 1)
+                            continue;
+
                         float width = font.getStringWidth(model.getColumnName(i)) / 1000 * fontSize;
 
                         switch (i) {
@@ -265,16 +283,16 @@ public class JtableInPDF {
                             case 0:
                                 textx += (colWidth1 - width) / 2;
                                 break;
-                            case 1:
+                            case 2:
                                 textx += (colWidth2 - width) / 2;
                                 break;
-                            case 2:
+                            case 3:
                                 textx += (colWidth3 - width) / 2;
                                 break;
-                            case 3:
+                            case 4:
                                 textx += (colWidth4 - width) / 2;
                                 break;
-                            case 4:
+                            case 5:
                                 textx += (colWidth5 - width) / 2;
                                 break;
                         }
@@ -289,23 +307,24 @@ public class JtableInPDF {
                             case 0:
                                 textx += width + (colWidth1 - width) / 2;
                                 break;
-                            case 1:
+                            case 2:
                                 textx += width + (colWidth2 - width) / 2;
                                 break;
-                            case 2:
+                            case 3:
                                 textx += width + (colWidth3 - width) / 2;
                                 break;
-                            case 3:
+                            case 4:
                                 textx += width + (colWidth4 - width) / 2;
                                 break;
-                            case 4:
+                            case 5:
                                 textx += width + (colWidth5 - width) / 2;
                                 break;
                         }
 
                     }
 
-                    fillTable(x, nexty, rows, cols, model, 0, cs, doc);
+                    rowsByDateText += rowsByDate;
+                    fillTableLoad(x, nexty, rowsByDateText, cols, model, 0.00, 0, cs, doc);
 
                 } catch (IOException ioe) {
 
@@ -318,7 +337,7 @@ public class JtableInPDF {
     private void drawTable (int x, int nexty, int rows, PDPageContentStream cs, PDPage page, PDDocument doc) throws IOException{
 
             int nextyStart = nexty;
-            int rowCount = rows;
+            int rowCount = rows+1;
 
             cs.setLineWidth(0.8f);
 
@@ -330,12 +349,6 @@ public class JtableInPDF {
                 cs.drawLine(x, nexty, x + tableWidth, nexty);
                 nexty -= rowHeight;
                 --rowCount;
-
-                if (rowCount == 0){
-
-                    cs.drawLine(x, nexty-20, x + tableWidth, nexty-20);
-
-                }
 
                 if (nexty <= endPage) {
 
@@ -361,7 +374,9 @@ public class JtableInPDF {
                 }
             }
 
-            //draw the columns
+        cs.drawLine(x, nexty, x + tableWidth, nexty);
+
+        //draw the columns
             int nextx = x;
 
             cs.drawLine(nextx, nextyStart, nextx, nexty);
@@ -378,7 +393,7 @@ public class JtableInPDF {
 
     }
 
-    private void fillTable (int x, int nexty, int rows, int cols, TableModel model, int rowCount, PDPageContentStream cs, PDDocument doc) throws IOException{
+    private void fillTable (int x, int nexty, int rows, int cols, TableModel model, int rowCount, int countPage, PDPageContentStream cs, PDDocument doc) throws IOException{
 
         PDFont font = PDType1Font.HELVETICA;
         int fontSize = 12;
@@ -386,9 +401,8 @@ public class JtableInPDF {
         float textx = x;
         float texty = nexty - (rowHeight*2) + (rowHeight-fontSize)/2;
         String text;
-        int countPage = 1;
 
-        for (int i = rowCount; i < rows-1; i++) {
+        for (int i = rowCount; i < rows; i++) {
 
             for (int j = 0; j < cols; j++) {
 
@@ -461,7 +475,10 @@ public class JtableInPDF {
 
                 try(PDPageContentStream newCS = new PDPageContentStream(doc, (PDPage) doc.getDocumentCatalog().getAllPages().get(countPage), true, true)){
 
-                    fillTable(x, start, rows, cols, model, rowCount, newCS, doc);
+                    ++countPage;
+                    fillTable(x, start, rows, cols, model, rowCount, countPage, newCS, doc);
+
+
                 }
 
                 break;
@@ -470,7 +487,7 @@ public class JtableInPDF {
 
         }
 
-        if (rowCount == rows-1) {
+        if (rowCount == rows) {
 
             font = PDType1Font.HELVETICA_BOLD;
             fontSize = 14;
@@ -485,6 +502,126 @@ public class JtableInPDF {
             cs.moveTextPositionByAmount(textxTotal, texty);
             cs.drawString(String.valueOf(total));
             cs.endText();
+
+        }
+
+    }
+
+    private void fillTableLoad (int x, int nexty, int rows, int cols, TableModel model, double totalLoad, int id, PDPageContentStream cs, PDDocument doc) throws IOException{
+
+        PDFont font = PDType1Font.HELVETICA;
+        int fontSize = 12;
+        cs.setFont(font, fontSize);
+        float textx = x;
+        float texty = nexty - (rowHeight*2) + (rowHeight-fontSize)/2;
+        String text;
+
+        for (int i = rowCountByDate; i < rows; i++, rowCountByDate++) {
+
+            for (int j = 0; j < cols; j++) {
+
+                if (j ==1)
+                    continue;
+
+                text = model.getValueAt(i, j).toString();
+
+                float width = font.getStringWidth(text)/1000*fontSize;
+
+                switch (j){
+
+                    case 0:
+                        text = String.valueOf(++id);
+                        textx += (colWidth1 - width)/2;
+                        break;
+                    case 2:
+                        textx += 2;
+                        break;
+                    case 3:
+                        totalLoad += Double.parseDouble(text);
+                        textx += (colWidth3 - width)/2;
+                        break;
+                    case 4:
+                        textx += 2;
+                        break;
+                    case 5:
+
+                        if (text.equals("false")){
+
+                            text = "not paid";
+
+                        }else{
+
+                            text = "paid";
+                        }
+
+                        width = font.getStringWidth(text)/1000*fontSize;
+                        textx += (colWidth5 - width)/2;
+                        break;
+                }
+
+                cs.beginText();
+                cs.moveTextPositionByAmount(textx, texty);
+                cs.drawString(text);
+                cs.endText();
+
+                switch (j){
+
+                    case 0:
+                        textx += width + (colWidth1 - width)/2;
+                        break;
+                    case 2:
+                        textx += colWidth2;
+                        break;
+                    case 3:
+                        textx += width + (colWidth3 - width)/2;
+                        break;
+                    case 4:
+                        textx += colWidth4;
+                        break;
+                    case 5:
+                        textx += width + (colWidth5 - width)/2;
+                        break;
+                }
+
+            }
+
+            textx = x;
+            texty -= rowHeight;
+
+            if (texty <= endPage+10){
+
+                int start = 570;
+
+                try(PDPageContentStream newCS = new PDPageContentStream(doc, (PDPage) doc.getDocumentCatalog().getAllPages().get(pageCountLoad), true, true)){
+
+                    ++pageCountLoad;
+                    ++rowCountByDate;
+                    fillTableLoad(x, start, rows, cols, model, totalLoad, id, newCS, doc);
+
+
+                }
+
+                break;
+
+            }
+
+            if (i == rows-1) {
+
+                font = PDType1Font.HELVETICA_BOLD;
+                fontSize = 14;
+                cs.setFont(font, fontSize);
+                float widthTotal = font.getStringWidth(String.valueOf(total)) / 1000 * fontSize;
+                float textxTotal = textx + colWidth1 + colWidth2 + (colWidth3 - widthTotal) / 2;
+                cs.beginText();
+                cs.moveTextPositionByAmount(textx + colWidth1, texty);
+                cs.drawString("Total:");
+                cs.endText();
+                cs.beginText();
+                cs.moveTextPositionByAmount(textxTotal, texty);
+                cs.drawString(new BigDecimal(totalLoad).setScale(2, BigDecimal.ROUND_UP).toString());
+                cs.endText();
+
+            }
 
         }
 

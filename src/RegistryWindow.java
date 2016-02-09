@@ -36,6 +36,7 @@ public class RegistryWindow extends JFrame{
     JButton btnLoadData;
     JButton btnConfirmStatus;
     JButton btnBack;
+    JButton btnPDF;
     JButton btnToExcel;
     JButton btnPrint;
     JButton btnMail;
@@ -542,9 +543,16 @@ public class RegistryWindow extends JFrame{
 
                     JtableInPDF pdf = new JtableInPDF(tableMain, getDate(), payments.getTotal());
 
-                    PDDocument doc = pdf.createPDF();
+                    try {
 
-//                    new PrintPreview(doc);
+                        PDDocument doc = PDDocument.load(pdf.createPDF());
+
+                        new PrintPreview(doc);
+
+                    }catch (IOException ioe){
+
+                        ioe.printStackTrace();
+                    }
 
             }
         });
