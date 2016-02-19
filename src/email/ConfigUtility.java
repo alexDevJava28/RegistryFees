@@ -13,17 +13,16 @@ public class ConfigUtility {
 
     public Properties loadProperties() throws IOException{
 
-        Properties defaultProps = new Properties();
+        Properties defaultProps = System.getProperties();
 
         //sets default properties
-        defaultProps.put("mail.smtp.ssl.enable", "true"); //required for gmail
-        defaultProps.put("mail.smtp.auth.mechanisms", "XOAUTH2");
-        defaultProps.setProperty("mail.smtp.host", "smtps.gmail.com");
-        defaultProps.setProperty("mail.smtp.port", "587");
-        defaultProps.setProperty("mail.user", "alexwithlenovo@gmail.com");
-        defaultProps.setProperty("mail.password", "007007");
-        defaultProps.setProperty("mail.smtp.starttls.enable", "true");
-        defaultProps.setProperty("mail.smtp.auth", "true");
+        defaultProps.put("mail.smtp.host", "smtp.gmail.com");
+        defaultProps.put("mail.smtp.port", "587");
+        defaultProps.put("mail.user", "alexwithlenovo@gmail.com");
+        defaultProps.put("mail.password", "007007");
+        defaultProps.put("mail.smtp.starttls.enable", "true");
+        defaultProps.put("mail.smtp.auth", "true");
+        defaultProps.put("mail.debug", "true");
 
         configProps = new Properties(defaultProps);
 
@@ -44,14 +43,13 @@ public class ConfigUtility {
                                String pass)
         throws IOException{
 
-        configProps.put("mail.smtp.ssl.enable", "true"); //required for gmail
-        configProps.put("mail.smtp.auth.mechanisms", "XOAUTH2");
-        configProps.setProperty("mail.smtp.host", host);
-        configProps.setProperty("mail.smtp.port", port);
-        configProps.setProperty("mail.user", user);
-        configProps.setProperty("mail.password", pass);
-        configProps.setProperty("mail.smtp.starttls.enable", "true");
-        configProps.setProperty("mail.smtp.auth", "true");
+        configProps.put("mail.smtp.host", host);
+        configProps.put("mail.smtp.port", port);
+        configProps.put("mail.user", user);
+        configProps.put("mail.password", pass);
+        configProps.put("mail.smtp.starttls.enable", "true");
+        configProps.put("mail.smtp.auth", "true");
+        configProps.put("mail.debug", "true");
 
         OutputStream outputStream = new FileOutputStream(configFile);
         configProps.store(outputStream, "host settings");

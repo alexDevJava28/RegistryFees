@@ -14,31 +14,32 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.IOException;
 import java.util.List;
+import java.util.ResourceBundle;
 
 public class PrintPreview extends JFrame implements ActionListener{
 
-    PDDocument doc;
+    private PDDocument doc;
+    private ResourceBundle resString;
 
-    CardLayout cl = new CardLayout();
-    JPanel imagePanel;
-    JPanel topPanel;
+    private CardLayout cl = new CardLayout();
+    private JPanel imagePanel;
+    private JPanel topPanel;
 
-    JButton btnPrint;
-    JButton btnClose;
-    JButton btnStart;
-    JButton btnEnd;
-    JButton btnForward;
-    JButton btnBack;
-    JLabel lblCountPagesLeft;
-    JLabel lblCountPagesRight;
-    JComboBox comboBox;
+    private JButton btnPrint;
+    private JButton btnClose;
+    private JButton btnStart;
+    private JButton btnEnd;
+    private JButton btnForward;
+    private JButton btnBack;
+    private JLabel lblCountPagesLeft;
+    private JLabel lblCountPagesRight;
+    private JComboBox comboBox;
 
-    int count;
-
-    public PrintPreview(PDDocument doc) {
+    public PrintPreview(PDDocument doc, ResourceBundle resString) {
 
         super("Print Preview");
         this.doc = doc;
+        this.resString = resString;
         createPreview();
 
     }
@@ -49,7 +50,7 @@ public class PrintPreview extends JFrame implements ActionListener{
 
         topPanel = new JPanel(new FlowLayout());
 
-        lblCountPagesLeft = new JLabel("Page ");
+        lblCountPagesLeft = new JLabel(resString.getString("printPage") + " ");
         lblCountPagesRight = new JLabel();
 
         comboBox = new JComboBox();
@@ -84,7 +85,7 @@ public class PrintPreview extends JFrame implements ActionListener{
                                     .getResource("/resources/images/printPreview.png"))
                                         .getImage()
                                             .getScaledInstance(20, 20, Image.SCALE_SMOOTH)));
-        btnClose = new JButton("Close");
+        btnClose = new JButton(resString.getString("printButtonClose"));
 
         btnStart.addActionListener(this);
         btnBack.addActionListener(this);

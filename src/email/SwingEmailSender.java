@@ -1,24 +1,12 @@
 package email;
 
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Properties;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import java.util.ResourceBundle;
 
 /**
  * A Swing application that allows sending e-mail messages from a SMTP server.
@@ -29,27 +17,44 @@ public class SwingEmailSender extends JFrame {
 
     private ConfigUtility configUtil = new ConfigUtility();
 
-    private JMenuBar menuBar = new JMenuBar();
-    private JMenu menuFile = new JMenu("File");
-    private JMenuItem menuItemSetting = new JMenuItem("Settings..");
+    private JMenuBar menuBar;
+    private JMenu menuFile;
+    private JMenuItem menuItemSetting;
 
-    private JLabel labelTo = new JLabel("To: ");
-    private JLabel labelSubject = new JLabel("Subject: ");
+    private JLabel labelTo;
+    private JLabel labelSubject;
 
-    private JTextField fieldTo = new JTextField(30);
-    private JTextField fieldSubject = new JTextField(30);
+    private JTextField fieldTo;
+    private JTextField fieldSubject;
 
-    private JButton buttonSend = new JButton("SEND");
+    private JButton buttonSend;
 
-    private JFilePicker filePicker = new JFilePicker("Attached", "Attach File...");
+    private JFilePicker filePicker;
 
-    private JTextArea textAreaMessage = new JTextArea(10, 30);
+    private JTextArea textAreaMessage;
 
-    private GridBagConstraints constraints = new GridBagConstraints();
+    private GridBagConstraints constraints;
 
-    public SwingEmailSender() {
+    private ResourceBundle resString;
+
+    public SwingEmailSender(ResourceBundle resString) {
 
         super("E-mail");
+        this.resString = resString;
+
+        configUtil = new ConfigUtility();
+
+        menuBar = new JMenuBar();
+        menuFile = new JMenu(resString.getString("emailMenu"));
+        menuItemSetting = new JMenuItem(resString.getString("emailMenuSettings"));
+        labelTo = new JLabel(resString.getString("emailTo"));
+        labelSubject = new JLabel(resString.getString("emailSubject"));
+        fieldTo = new JTextField(30);
+        fieldSubject = new JTextField(30);
+        buttonSend = new JButton(resString.getString("emailButtonSend"));
+        filePicker = new JFilePicker(resString.getString("emailAttached"), resString.getString("emailButtonAttach"));
+        textAreaMessage = new JTextArea(10, 30);
+        constraints = new GridBagConstraints();
 
         // set up layout
         setLayout(new GridBagLayout());
@@ -69,7 +74,7 @@ public class SwingEmailSender extends JFrame {
         menuItemSetting.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent event) {
-                SettingsDialog dialog = new SettingsDialog(SwingEmailSender.this, configUtil);
+                SettingsDialog dialog = new SettingsDialog(SwingEmailSender.this, configUtil, resString);
                 dialog.setVisible(true);
             }
         });

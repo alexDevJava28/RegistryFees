@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * Created by khodackovskiy on 26.01.2016.
@@ -14,22 +15,34 @@ public class SettingsDialog extends JDialog{
 
     private ConfigUtility configUtil;
 
-    private JLabel labelHost = new JLabel("Host name: ");
-    private JLabel labelPort = new JLabel("Port number: ");
-    private JLabel labelUser = new JLabel("Username: ");
-    private JLabel labelPass = new JLabel("Password: ");
+    private JLabel labelHost;
+    private JLabel labelPort;
+    private JLabel labelUser;
+    private JLabel labelPass;
 
-    private JTextField textHost = new JTextField(20);
-    private JTextField textPort = new JTextField(20);
-    private JTextField textUser = new JTextField(20);
-    private JTextField textPass = new JTextField(20);
+    private JTextField textHost;
+    private JTextField textPort;
+    private JTextField textUser;
+    private JTextField textPass;
 
-    private JButton buttonSave = new JButton("Save");
+    private JButton buttonSave;
 
-    public SettingsDialog(JFrame parent, ConfigUtility configUtil) {
+    public SettingsDialog(JFrame parent, ConfigUtility configUtil, ResourceBundle resString) {
 
         super(parent, "SMTP Settings", true);
         this.configUtil = configUtil;
+
+        labelHost = new JLabel(resString.getString("settingsHostName"));
+        labelPort = new JLabel(resString.getString("settingsPortNumber"));
+        labelUser = new JLabel(resString.getString("settingsUsername"));
+        labelPass = new JLabel(resString.getString("settingsPassword"));
+
+        textHost = new JTextField(20);
+        textPort = new JTextField(20);
+        textUser = new JTextField(20);
+        textPass = new JTextField(20);
+
+        buttonSave = new JButton(resString.getString("settingsButtonSave"));
 
         setupForm();
 
@@ -97,8 +110,8 @@ public class SettingsDialog extends JDialog{
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        textHost.setText(configProps.getProperty("mail.smtps.host"));
-        textPort.setText(configProps.getProperty("mail.smtps.port"));
+        textHost.setText(configProps.getProperty("mail.smtp.host"));
+        textPort.setText(configProps.getProperty("mail.smtp.port"));
         textUser.setText(configProps.getProperty("mail.user"));
         textPass.setText(configProps.getProperty("mail.password"));
     }

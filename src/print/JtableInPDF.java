@@ -9,10 +9,13 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.TableModel;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.ResourceBundle;
 
 /**
  * Created by khodackovskiy on 28.01.2016.
@@ -23,6 +26,8 @@ public class JtableInPDF {
     private Date date;
     private double total;
     private PDDocument doc;
+    private File file;
+    private ResourceBundle resString;
 
     private final int colWidth1 = 30;
     private final int colWidth2 = 250;
@@ -35,24 +40,33 @@ public class JtableInPDF {
     private int rowCountByDate = 0;
     private int rowsByDateText = 0;
 
-    public JtableInPDF(JTable table, Date date, double total) {
+    public JtableInPDF(JTable table, Date date, double total, ResourceBundle resString) {
 
         this.table = table;
         this.date = date;
         this.total = total;
+        this.resString = resString;
     }
 
-    public File createPDF() {
+    public File createPDF(boolean print) {
 
-        File file = new File("print.pdf");
+        if (print) {
 
-            try(PDDocument insideDoc = new PDDocument()){
+            file = new File("print.pdf");
+
+        }else{
+
+            FileSystemView fs = FileSystemView.getFileSystemView();
+            file = new File(fs.getHomeDirectory() + "\\" + resString.getString("filename") + ".pdf");
+        }
+
+        try (PDDocument insideDoc = new PDDocument()) {
 
                 if (table.getModel().getColumnCount() == 5) {
 
                     createNewPage(insideDoc);
 
-                }else {
+                } else {
 
                     createNewPageLoad(insideDoc);
 
@@ -61,11 +75,11 @@ public class JtableInPDF {
                 doc = insideDoc;
                 doc.save(file);
 
-            }catch (IOException ioe){
+            } catch (IOException ioe) {
 
                 ioe.printStackTrace();
 
-            }catch (COSVisitorException cosve){
+            } catch (COSVisitorException cosve) {
 
                 cosve.printStackTrace();
             }
@@ -102,7 +116,7 @@ public class JtableInPDF {
                 cs.setFont(font, fontSize);
                 cs.beginText();
                 cs.moveTextPositionByAmount(x, y);
-                cs.drawString("Registy of payments");
+                cs.drawString(resString.getString("headPdf"));
                 cs.endText();
                 cs.beginText();
                 cs.moveTextPositionByAmount(x, y - 20);
@@ -228,7 +242,7 @@ public class JtableInPDF {
                     cs.setFont(font, fontSize);
                     cs.beginText();
                     cs.moveTextPositionByAmount(x, y);
-                    cs.drawString("Registy of payments");
+                    cs.drawString(resString.getString("headPdf"));
                     cs.endText();
                     cs.beginText();
                     cs.moveTextPositionByAmount(x, y - 20);
@@ -427,11 +441,11 @@ public class JtableInPDF {
 
                         if (text.equals("false")){
 
-                            text = "not paid";
+                            text = resString.getString("statusNotPaid");
 
                         }else{
 
-                            text = "paid";
+                            text = resString.getString("statusPaid");
                         }
 
                         width = font.getStringWidth(text)/1000*fontSize;
@@ -547,11 +561,11 @@ public class JtableInPDF {
 
                         if (text.equals("false")){
 
-                            text = "not paid";
+                            text = resString.getString("statusNotPaid");
 
                         }else{
 
-                            text = "paid";
+                            text = resString.getString("statusPaid");
                         }
 
                         width = font.getStringWidth(text)/1000*fontSize;

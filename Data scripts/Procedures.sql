@@ -1,0 +1,21 @@
+SET serveroutput ON
+
+@Procedures\Delete_company_from_companies
+@Procedures\Delete_row_from_payments
+@Procedures\Delete_text_from_purposes
+@Procedures\Get_total_for_load
+@Procedures\Get_total_status_0
+@Procedures\Insert_name_into_companies
+@Procedures\Insert_row_into_payments
+@Procedures\Insert_text_into_purposes
+@Procedures\Select_company_from_companies
+@Procedures\Select_payment_from_payments
+@Procedures\Select_purpose_from_purposes
+@Procedures\Select_rows_load_data
+@Procedures\Select_rows_status_0
+@Procedures\Update_day_in_payments
+@Procedures\Update_name_in_companies
+@Procedures\Update_status_to_0
+@Procedures\Update_status_to_1
+@Procedures\Update_sum_in_payments
+@Procedures\Update_text_in_purposes

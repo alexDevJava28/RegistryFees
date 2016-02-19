@@ -1,7 +1,10 @@
 package email;
 
 import javax.mail.*;
-import javax.mail.internet.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -17,7 +20,7 @@ public class EmailUtility {
                                   String subject,
                                   String message,
                                   File[] attachFiles)
-            throws AddressException,MessagingException, IOException{
+            throws MessagingException, IOException{
 
         final String userName = smtpProperties.getProperty("mail.user");
         final String password = smtpProperties.getProperty("mail.password");
@@ -31,9 +34,7 @@ public class EmailUtility {
             }
         };
 
-        Session session = Session.getInstance(smtpProperties);
-        Store store = session.getStore("smtp");
-        store.connect("smtp.gmail.com", userName, password);
+        Session session = Session.getInstance(smtpProperties, auth);
 
         //creates a new email message
         Message msg = new MimeMessage(session);
