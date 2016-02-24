@@ -2,6 +2,11 @@ package data; /**
  * Created by khodackovskiy on 07.12.2015.
  */
 
+import org.apache.derby.drda.NetworkServerControl;
+
+import javax.swing.*;
+import java.net.InetAddress;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -9,32 +14,90 @@ import java.util.Locale;
 
 public class DBConnector {
 
-    // JDBC driver name and database URL
-    static final String JDBC_DRIVER = "oracle.jdbc.driver.OracleDriver";
-    static final String DB_URL = "jdbc:oracle:thin:ALEX/007007@localhost:1521:XE";
+    private static Connection conn;
+    private static NetworkServerControl server;
+    private static final String driver = "org.apache.derby.jdbc.ClientDriver";
+    private static final String url = "jdbc:derby://";
+    private static String host = "localhost";
+    private static String port = "1527";
+    private static String dbName = "alexDB";
 
-    static Connection conn = null;
+    public DBConnector(String host, String port, String dbName) {
 
-    //method for get and return connection to the database
-    public static Connection getConn () {
+        this.host = host;
+        this.port = port;
+        this.dbName = dbName;
 
+    }
 
-        try {
+    public static Connection getConn(){
 
-            Class.forName(JDBC_DRIVER);
-            Locale.setDefault(Locale.ENGLISH);
-            conn = DriverManager.getConnection(DB_URL);
+        if (!dbExists()){
 
-        }catch (ClassNotFoundException e){
+            try {
 
-            System.out.println("Connection FAILED!");
+                server = new NetworkServerControl();
+                server.start(null);
 
-        }catch (SQLException r){
+                Class.forName(driver);
 
-            System.out.println("SQLException in getConn method");
+                //connect to database or create it
+                conn = DriverManager.getConnection(url + host + ":" + port + "/" + dbName + ";create=true");
+
+            }catch (ClassNotFoundException cnfe){
+
+                JOptionPane.showMessageDialog(null, cnfe);
+
+            }catch (SQLException sqle){
+
+                JOptionPane.showMessageDialog(null, sqle);
+
+            }catch (Exception e){
+
+                JOptionPane.showMessageDialog(null, e);
+            }
+
         }
 
         return conn;
     }
+
+    public static void closeConn(Connection conn){
+
+        try{
+
+            conn.close();
+            server.shutdown();
+
+        }catch (SQLException sqle){
+
+            JOptionPane.showMessageDialog(null, sqle);
+
+        }catch (Exception e){
+
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }
+
+    private static boolean dbExists(){
+
+        boolean exists = false;
+
+        try{
+
+            Class.forName(driver);
+
+            //connect to database or create it
+            conn = DriverManager.getConnection(url + host + ":" + port + "/" + dbName);
+
+        }catch (Exception e){
+
+            //if database didn't create, doing nothing
+        }
+
+        return exists;
+    }
+
+
 }
 

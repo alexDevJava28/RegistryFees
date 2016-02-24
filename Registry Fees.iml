@@ -14,9 +14,12 @@
     <orderEntry type="library" exported="" name="poi-ooxml-3.13-20150929" level="project" />
     <orderEntry type="library" exported="" name="poi-ooxml-schemas-3.13-20150929" level="project" />
     <orderEntry type="library" exported="" name="xmlbeans-2.6.0" level="project" />
-    <orderEntry type="library" name="itextpdf-5.3.1" level="project" />
     <orderEntry type="library" name="pdfbox-1.8.11" level="project" />
     <orderEntry type="library" name="pdfbox-app-1.8.11" level="project" />
     <orderEntry type="library" name="javax.mail" level="project" />
+    <orderEntry type="library" name="derbyclient" level="project" />
+    <orderEntry type="library" name="derbytools" level="project" />
+    <orderEntry type="library" name="derbynet" level="project" />
+    <orderEntry type="library" name="derbyrun" level="project" />
   </component>
 </module>
