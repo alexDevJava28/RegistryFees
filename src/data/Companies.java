@@ -2,10 +2,8 @@ package data;
 
 import oracle.jdbc.OracleTypes;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.swing.*;
+import java.sql.*;
 
 /**
  * Created by khodackovskiy on 10.12.2015.
@@ -60,20 +58,19 @@ public class Companies implements SQLCommands {
     public Long getCompanyNameId (){
 
         Long id = null;
-        String sql = "{call SELECT_COMPANY_FROM_COMPANIES(?, ?)}";
+        String sql = "{call AFP.SELECT_COMPANY_FROM_COMPANIES(?)}";
 
         try (CallableStatement cs = conn.prepareCall(sql)){
 
             cs.setString("SCFC_NAME", String.valueOf(companyName));
-            cs.registerOutParameter("SCFC_COMPANY", OracleTypes.NUMBER);
 
-            cs.executeUpdate();
+            cs.executeQuery();
 
-            id = cs.getLong("SCFC_COMPANY");
+            id = cs.getResultSet().getLong(1);
 
         }catch (SQLException e){
 
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e);
         }
 
         return id;

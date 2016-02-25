@@ -2,10 +2,8 @@ package data;
 
 import oracle.jdbc.OracleTypes;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.swing.*;
+import java.sql.*;
 
 /**
  * Created by khodackovskiy on 10.12.2015.
@@ -61,20 +59,19 @@ public class Purposes implements SQLCommands {
     public Long getWhatPayForId (){
 
         Long id = null;
-        String sql = "{call SELECT_PURPOSE_FROM_PURPOSES(?, ?)}";
+        String sql = "{call SELECT_PURPOSE_FROM_PURPOSES(?)}";
 
         try (CallableStatement cs = conn.prepareCall(sql)){
 
             cs.setString("SPFP_TEXT", String.valueOf(whatPayFor));
-            cs.registerOutParameter("SPFP_PURPOSE", OracleTypes.NUMBER);
 
-            cs.executeUpdate();
+            cs.executeQuery();
 
-            id = cs.getLong("SPFP_PURPOSE");
+            id = cs.getResultSet().getLong(1);
 
         }catch (SQLException e){
 
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e);
         }
 
         return id;

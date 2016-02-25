@@ -20,7 +20,7 @@ public class DBConnector {
     private static final String url = "jdbc:derby://";
     private static String host = "localhost";
     private static String port = "1527";
-    private static String dbName = "alexDB";
+    private static String dbName = "C:\\db-derby-10.12.1.1-bin\\bin\\alexDB";
 
     public DBConnector(String host, String port, String dbName) {
 

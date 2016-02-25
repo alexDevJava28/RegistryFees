@@ -46,7 +46,7 @@ public class PurposesField extends JComboBox {
 
         try {
 
-            String select = "SELECT TEXT FROM Purposes ORDER BY TEXT";
+            String select = "SELECT TEXT FROM AFP.PURPOSES ORDER BY TEXT";
 
             sta = conn.createStatement();
 

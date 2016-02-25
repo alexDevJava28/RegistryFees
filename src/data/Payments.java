@@ -66,16 +66,15 @@ public class Payments implements SQLCommands {
 
     public void select(byte status) {
 
-        String sql = "{call SELECT_ROWS_STATUS_0(?, ?)}";
+        String sql = "{call AFP.SELECT_ROWS_STATUS_0(?)}";
 
         try(CallableStatement cs = conn.prepareCall(sql)){
 
             cs.setByte("SRS0_STATUS", status);
-            cs.registerOutParameter("MYCURS", OracleTypes.CURSOR);
 
-            cs.executeUpdate();
+            cs.executeQuery();
 
-            rs = (ResultSet) cs.getObject("MYCURS");
+            rs = cs.getResultSet();
 
             while (rs.next()){
 
@@ -186,7 +185,7 @@ public class Payments implements SQLCommands {
 
     public void updateDate(java.sql.Date date) {
 
-        String sql = "{call UPDATE_DAY_IN_PAYMENTS(?)}";
+        String sql = "{call AFP.UPDATE_DAY_IN_PAYMENTS(?)}";
 
         try(CallableStatement cs = conn.prepareCall(sql)){
 
@@ -196,7 +195,7 @@ public class Payments implements SQLCommands {
 
         }catch (SQLException e){
 
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e);
 
         }
     }
@@ -262,19 +261,17 @@ public class Payments implements SQLCommands {
 
         double total = 0.00;
 
-        String sql = "{call GET_TOTAL_STATUS_0(?)}";
+        String sql = "{call GET_TOTAL_STATUS_0}";
 
         try(CallableStatement cs = conn.prepareCall(sql)){
 
-            cs.registerOutParameter("GTS0_TOTAL", OracleTypes.NUMBER);
-
             cs.executeUpdate();
 
-            total = cs.getDouble("GTS0_TOTAL");
+            total = cs.getResultSet().getDouble(1);
 
         }catch (SQLException e){
 
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, e);
 
         }
 

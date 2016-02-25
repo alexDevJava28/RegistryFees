@@ -47,7 +47,7 @@ public class CompaniesField extends JComboBox{
 
         try {
 
-            String select = "SELECT name FROM Companies ORDER BY name";
+            String select = "SELECT NAME FROM AFP.COMPANIES ORDER BY NAME";
 
             sta = conn.createStatement();
 
